@@ -52,8 +52,7 @@ CREATE TABLE statusentry (
     isunnamed boolean DEFAULT false NOT NULL,
     isvalid boolean DEFAULT false NOT NULL,
     isv2dir boolean DEFAULT false NOT NULL,
-    isv3dir boolean DEFAULT false NOT NULL,
-    PRIMARY KEY (validafter, descriptor)
+    isv3dir boolean DEFAULT false NOT NULL
 );
 
 --
@@ -86,45 +85,97 @@ CREATE TABLE descriptor_statusentry (
     isunnamed boolean DEFAULT false NOT NULL,
     isvalid boolean DEFAULT false NOT NULL,
     isv2dir boolean DEFAULT false NOT NULL,
-    isv3dir boolean DEFAULT false NOT NULL,
-    PRIMARY KEY (validafter, descriptor)
+    isv3dir boolean DEFAULT false NOT NULL
 );
 
---
---mirror_ds() - TRIGGER
---We want the unnormalized table 'descriptor_status' to have any
---inserts to statusentry.
---
---TODO - Is there a better way to do this (without join, more succinct)?
---
+ALTER TABLE ONLY descriptor
+    ADD CONSTRAINT descriptor_pkey PRIMARY KEY (descriptor);
+
+ALTER TABLE ONLY statusentry
+    ADD CONSTRAINT statusentry_pkey PRIMARY KEY (validafter, descriptor);
+
+ALTER TABLE ONLY descriptor_statusentry
+    ADD CONSTRAINT descriptor_statusentry_pkey PRIMARY KEY (validafter, descriptor);
+
+CREATE INDEX descriptorid ON descriptor USING btree (descriptor);
+CREATE INDEX statusvalidafter ON statusentry USING btree (validafter);
 
 CREATE LANGUAGE plpgsql;
 
-CREATE FUNCTION mirror_ds() RETURNS TRIGGER AS \$mirror_ds\$
-BEGIN
-    INSERT INTO descriptor_statusentry (
-        SELECT d.descriptor AS descriptor, d.address AS address,
-               d.orport AS orport, d.dirport AS dirport,
-               d.bandwidthavg AS bandwidthavg, d.bandwidthburst AS bandwidthburst,
-               d.bandwidthobserved AS bandwidthobserved, d.platform AS platform,
-               d.published AS published, d.uptime AS uptime, s.validafter
-               AS validafter, s.isauthority AS isauthority, s.isbadexit AS
-               isbadexit, s.isbaddirectory AS isbaddirectory, s.isexit AS
-               isexit, s.isfASt AS isfASt, s.isguard AS isguard, s.ishsdir AS
-               ishsdir, s.isnamed AS isnamed, s.isstable AS isstable,
-               s.isrunning AS isrunning, s.isunnamed AS isunnamed,
-               s.isvalid AS isvalid, s.isv2dir AS isv2dir, s.isv3dir
-               AS isv3dir
-        FROM descriptor d, statusentry s
-        WHERE d.descriptor=s.descriptor
-              AND d.descriptor=NEW.descriptor AND s.validafter=NEW.validafter
-    );
-RETURN NEW;
-END;
-\$mirror_ds\$ LANGUAGE plpgsql;
+--TRIGGER mirror_statusentry()
+--We want the unnormalized table 'descriptor_status' to have any
+--inserts to statusentry.
 
-CREATE TRIGGER mirror_ds AFTER INSERT OR UPDATE ON statusentry
-    FOR EACH ROW EXECUTE PROCEDURE mirror_ds();
+CREATE FUNCTION mirror_statusentry() RETURNS TRIGGER AS \$mirror_statusentry\$
+    DECLARE
+        rd descriptor%ROWTYPE;
+        dcount INTEGER;
+    BEGIN
+        IF (TG_OP = 'INSERT') THEN
+            SELECT count(*) INTO dcount
+            FROM descriptor
+            WHERE descriptor=NEW.descriptor;
+
+            IF (dcount = 0) THEN
+                RAISE EXCEPTION 'There is no record with descriptor=\'% \' in descriptor', NEW.descriptor;
+            END IF;
+
+            SELECT * INTO rd FROM descriptor WHERE descriptor=NEW.descriptor;
+            INSERT INTO descriptor_statusentry
+            VALUES (rd.descriptor, rd.address, rd.orport, rd.dirport,
+                    rd.bandwidthavg, rd.bandwidthburst, rd.bandwidthobserved,
+                    rd.platform, rd.published, rd.uptime, new.validafter,
+                    new.isauthority, new.isbadexit, new.isbaddirectory,
+                    new.isexit, new.isfast, new.isguard, new.ishsdir,
+                    new.isnamed, new.isstable, new.isrunning, new.isunnamed,
+                    new.isvalid, new.isv2dir, new.isv3dir);
+        ELSIF (TG_OP = 'UPDATE') THEN
+            UPDATE descriptor_statusentry
+            SET isauthority=NEW.isauthority,
+                isbadexit=NEW.isbadexit, isbaddirectory=NEW.isbaddirectory,
+                isexit=NEW.isexit, isfast=NEW.isfast, isguard=NEW.isguard,
+                ishsdir=NEW.ishsdir, isnamed=NEW.isnamed, isstable=NEW.isstable,
+                isrunning=NEW.isrunning, isunnamed=NEW.isunnamed,
+                isvalid=NEW.isvalid, isv2dir=NEW.isv2dir, isv3dir=NEW.isv3dir
+            WHERE descriptor=NEW.descriptor AND validafter=NEW.validafter;
+        ELSIF (TG_OP = 'DELETE') THEN
+            DELETE FROM descriptor_statusentry
+            WHERE validafter=OLD.validafter AND descriptor=OLD.descriptor;
+        END IF;
+    RETURN NEW;
+END;
+\$mirror_statusentry\$ LANGUAGE plpgsql;
+
+--
+--FUNCTION mirror_descriptor
+--Reflect changes in descriptor_statusentry when changes made to descriptor table
+--
+
+CREATE FUNCTION mirror_descriptor() RETURNS TRIGGER AS \$mirror_descriptor\$
+    DECLARE
+    BEGIN
+        IF (TG_OP = 'UPDATE') THEN
+            UPDATE descriptor_statusentry
+            SET address=NEW.address, orport=NEW.orport, dirport=NEW.dirport,
+                bandwidthavg=NEW.bandwidthavg, bandwidthburst=NEW.bandwidthburst,
+                bandwidthobserved=NEW.bandwidthobserved, platform=NEW.platform,
+                published=NEW.published, uptime=NEW.uptime
+            WHERE descriptor=NEW.descriptor;
+        ELSIF (TG_OP = 'DELETE') THEN
+            DELETE FROM descriptor_statusentry
+            WHERE descriptor=OLD.descriptor;
+            DELETE FROM statusentry
+            WHERE descriptor=OLD.descriptor;
+        END IF;
+    RETURN NEW;
+END;
+\$mirror_descriptor\$ LANGUAGE plpgsql;
+
+CREATE TRIGGER mirror_statusentry AFTER INSERT OR UPDATE OR DELETE ON statusentry
+    FOR EACH ROW EXECUTE PROCEDURE mirror_statusentry();
+
+CREATE TRIGGER mirror_descriptor AFTER UPDATE OR DELETE ON descriptor
+    FOR EACH ROW EXECUTE PROCEDURE mirror_descriptor();
 
 --
 --TEST QUERIES - To make sure data stays consistent.
@@ -133,14 +184,37 @@ CREATE TRIGGER mirror_ds AFTER INSERT OR UPDATE ON statusentry
 insert into descriptor values ('ff0613a644c1406cc2ea42ef46a32ed572ed9386', '119.42.144.18',
                                 9001, 0, 20480, 40960, 0, 'Tor 0.2.1.19 on Linux i686',
                                 '2010-03-16 07:11:14', 10);
+insert into descriptor values ('ab0313a644c1406cc2ea42ef46a32ed572ed9386', '119.42.144.18',
+                                9001, 0, 20480, 40960, 0, 'Tor 0.2.1.19 on Linux i686',
+                                '2010-03-16 07:11:14', 10);
+insert into statusentry values ('2010-03-19 15:00:00',
+                                'ab0313a644c1406cc2ea42ef46a32ed572ed9386', 't', 'f', 'f',
+                                'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f');
 insert into statusentry values ('2010-03-19 15:00:00',
                                 'ff0613a644c1406cc2ea42ef46a32ed572ed9386', 't', 'f', 'f',
                                 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f');
 insert into statusentry values ('2010-03-20 16:00:00',
                                 'ff0613a644c1406cc2ea42ef46a32ed572ed9386', 't', 'f', 'f',
                                 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f');
+
+--Test update and delete triggers on statusentry
+--update statusentry set ishsdir='t' where descriptor='ff0613a644c1406cc2ea42ef46a32ed572ed9386';
+--delete from statusentry where descriptor='ff0613a644c1406cc2ea42ef46a32ed572ed9386';
+
+--Test update and delete triggers on descriptor
+--update descriptor set orport='10000' where descriptor='ff0613a644c1406cc2ea42ef46a32ed572ed9386';
+--delete from descriptor where descriptor='ff0613a644c1406cc2ea42ef46a32ed572ed9386';
+
+--Test insert when there is no corresponding descriptor
+--insert into statusentry values ('2010-03-19 15:00:00',
+--                                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 't', 'f', 'f',
+--                                'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f', 'f');
+
+\\echo -----descriptor-----
 select * from descriptor;
+\\echo -----statusentry-----
 select * from statusentry;
+\\echo -----descriptor_statusentry-----
 select * from descriptor_statusentry;
 rollback;
 EOF
