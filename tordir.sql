@@ -42,8 +42,8 @@ CREATE TABLE statusentry (
     isv3dir boolean DEFAULT false NOT NULL
 );
 
---  descriptor_statusentry: Unnormalized table containing both descriptors and
---  status entries in one big table.
+--TABLE descriptor_statusentry: Unnormalized table containing both descriptors and
+--status entries in one big table.
 CREATE TABLE descriptor_statusentry (
     descriptor character(40) NOT NULL,
     address character varying(15),
@@ -87,7 +87,7 @@ CREATE INDEX statusvalidafter ON statusentry USING btree (validafter);
 CREATE LANGUAGE plpgsql;
 
 --TRIGGER mirror_statusentry()
---We want the unnormalized table 'descriptor_status' to have any
+--Reflect any changes to statusentry in descriptor_statusentry
 CREATE FUNCTION mirror_statusentry() RETURNS TRIGGER AS $mirror_statusentry$
     DECLARE
         rd descriptor%ROWTYPE;
@@ -99,7 +99,8 @@ CREATE FUNCTION mirror_statusentry() RETURNS TRIGGER AS $mirror_statusentry$
             WHERE descriptor=NEW.descriptor;
 
             IF (dcount = 0) THEN
-                RAISE WARNING 'There is no record with descriptor=\'%\' in descriptor', NEW.descriptor;
+                RAISE WARNING 'There is no record with descriptor='%' in descriptor',
+                    NEW.descriptor;
             END IF;
 
             SELECT * INTO rd FROM descriptor WHERE descriptor=NEW.descriptor;
