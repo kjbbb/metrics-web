@@ -55,21 +55,21 @@ CREATE TABLE descriptor_statusentry (
     platform character varying(256),
     published timestamp without time zone,
     uptime bigint,
-    validafter timestamp without time zone NOT NULL,
-    isauthority boolean DEFAULT false NOT NULL,
-    isbadexit boolean DEFAULT false NOT NULL,
-    isbaddirectory boolean DEFAULT false NOT NULL,
-    isexit boolean DEFAULT false NOT NULL,
-    isfast boolean DEFAULT false NOT NULL,
-    isguard boolean DEFAULT false NOT NULL,
-    ishsdir boolean DEFAULT false NOT NULL,
-    isnamed boolean DEFAULT false NOT NULL,
-    isstable boolean DEFAULT false NOT NULL,
-    isrunning boolean DEFAULT false NOT NULL,
-    isunnamed boolean DEFAULT false NOT NULL,
-    isvalid boolean DEFAULT false NOT NULL,
-    isv2dir boolean DEFAULT false NOT NULL,
-    isv3dir boolean DEFAULT false NOT NULL
+    validafter timestamp without time zone,
+    isauthority boolean DEFAULT false,
+    isbadexit boolean DEFAULT false,
+    isbaddirectory boolean DEFAULT false,
+    isexit boolean DEFAULT false,
+    isfast boolean DEFAULT false,
+    isguard boolean DEFAULT false,
+    ishsdir boolean DEFAULT false,
+    isnamed boolean DEFAULT false,
+    isstable boolean DEFAULT false,
+    isrunning boolean DEFAULT false,
+    isunnamed boolean DEFAULT false,
+    isvalid boolean DEFAULT false,
+    isv2dir boolean DEFAULT false,
+    isv3dir boolean DEFAULT false
 );
 
 ALTER TABLE ONLY descriptor
@@ -78,11 +78,12 @@ ALTER TABLE ONLY descriptor
 ALTER TABLE ONLY statusentry
     ADD CONSTRAINT statusentry_pkey PRIMARY KEY (validafter, descriptor);
 
-ALTER TABLE ONLY descriptor_statusentry
-    ADD CONSTRAINT descriptor_statusentry_pkey PRIMARY KEY (validafter, descriptor);
+--ALTER TABLE ONLY descriptor_statusentry
+--    ADD CONSTRAINT descriptor_statusentry_pkey PRIMARY KEY (validafter, descriptor);
 
 CREATE INDEX descriptorid ON descriptor USING btree (descriptor);
 CREATE INDEX statusvalidafter ON statusentry USING btree (validafter);
+CREATE INDEX descriptorstatusvalidafter ON descriptor_statusentry USING btree (descriptor, validafter);
 
 CREATE LANGUAGE plpgsql;
 
@@ -91,18 +92,8 @@ CREATE LANGUAGE plpgsql;
 CREATE FUNCTION mirror_statusentry() RETURNS TRIGGER AS $mirror_statusentry$
     DECLARE
         rd descriptor%ROWTYPE;
-        dcount INTEGER;
     BEGIN
         IF (TG_OP = 'INSERT') THEN
-            SELECT count(*) INTO dcount
-            FROM descriptor
-            WHERE descriptor=NEW.descriptor;
-
-            IF (dcount = 0) THEN
-                RAISE WARNING 'There is no record with descriptor='%' in descriptor',
-                    NEW.descriptor;
-            END IF;
-
             SELECT * INTO rd FROM descriptor WHERE descriptor=NEW.descriptor;
             INSERT INTO descriptor_statusentry
             VALUES (new.descriptor, rd.address, rd.orport, rd.dirport,
@@ -112,6 +103,10 @@ CREATE FUNCTION mirror_statusentry() RETURNS TRIGGER AS $mirror_statusentry$
                     new.isexit, new.isfast, new.isguard, new.ishsdir,
                     new.isnamed, new.isstable, new.isrunning, new.isunnamed,
                     new.isvalid, new.isv2dir, new.isv3dir);
+
+            DELETE FROM descriptor_statusentry
+            WHERE descriptor=NEW.descriptor AND validafter IS NULL;
+
         ELSIF (TG_OP = 'UPDATE') THEN
             UPDATE descriptor_statusentry
             SET isauthority=NEW.isauthority,
@@ -133,8 +128,28 @@ $mirror_statusentry$ LANGUAGE plpgsql;
 --Reflect changes in descriptor_statusentry when changes made to descriptor table
 CREATE FUNCTION mirror_descriptor() RETURNS TRIGGER AS $mirror_descriptor$
     DECLARE
+        dcount INTEGER;
     BEGIN
-        IF (TG_OP = 'UPDATE') THEN
+        IF (TG_OP = 'INSERT') THEN
+            SELECT COUNT(*) INTO dcount
+            FROM descriptor_statusentry
+            WHERE descriptor=NEW.descriptor AND validafter IS NOT NULL;
+
+            IF (dcount = 0) THEN
+                INSERT INTO descriptor_statusentry VALUES (
+                    NEW.descriptor, NEW.address, NEW.orport, NEW.dirport, NEW.bandwidthavg,
+                    NEW.bandwidthburst, NEW.bandwidthobserved, NEW.platform, NEW.published,
+                    NEW.uptime, null, null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null);
+            ELSE
+                UPDATE descriptor_statusentry
+                SET address=NEW.address, orport=NEW.orport, dirport=NEW.dirport,
+                    bandwidthavg=NEW.bandwidthavg, bandwidthburst=NEW.bandwidthburst,
+                    bandwidthobserved=NEW.bandwidthobserved, platform=NEW.platform,
+                    published=NEW.published, uptime=NEW.uptime
+                WHERE descriptor=NEW.descriptor;
+            END IF;
+        ELSIF (TG_OP = 'UPDATE') THEN
             UPDATE descriptor_statusentry
             SET address=NEW.address, orport=NEW.orport, dirport=NEW.dirport,
                 bandwidthavg=NEW.bandwidthavg, bandwidthburst=NEW.bandwidthburst,
@@ -142,10 +157,6 @@ CREATE FUNCTION mirror_descriptor() RETURNS TRIGGER AS $mirror_descriptor$
                 published=NEW.published, uptime=NEW.uptime
             WHERE descriptor=NEW.descriptor;
         ELSIF (TG_OP = 'DELETE') THEN
-            DELETE FROM descriptor_statusentry
-            WHERE descriptor=OLD.descriptor;
-            DELETE FROM statusentry
-            WHERE descriptor=OLD.descriptor;
         END IF;
     RETURN NEW;
 END;
@@ -154,5 +165,5 @@ $mirror_descriptor$ LANGUAGE plpgsql;
 CREATE TRIGGER mirror_statusentry AFTER INSERT OR UPDATE OR DELETE ON statusentry
     FOR EACH ROW EXECUTE PROCEDURE mirror_statusentry();
 
-CREATE TRIGGER mirror_descriptor AFTER UPDATE OR DELETE ON descriptor
+CREATE TRIGGER mirror_descriptor AFTER INSERT OR UPDATE OR DELETE ON descriptor
     FOR EACH ROW EXECUTE PROCEDURE mirror_descriptor();
