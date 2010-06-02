@@ -167,3 +167,71 @@ CREATE TRIGGER mirror_statusentry AFTER INSERT OR UPDATE OR DELETE ON statusentr
 
 CREATE TRIGGER mirror_descriptor AFTER INSERT OR UPDATE OR DELETE ON descriptor
     FOR EACH ROW EXECUTE PROCEDURE mirror_descriptor();
+
+----Views----
+--Network size
+CREATE VIEW network_size_v AS
+    SELECT
+        DATE(validafter),
+        COUNT(*) / relay_statuses_per_day.count AS avg_running,
+        SUM(CASE WHEN isexit IS TRUE THEN 1 ELSE 0 END)
+            / relay_statuses_per_day.count AS avg_exit,
+        SUM(CASE WHEN isguard IS TRUE THEN 1 ELSE 0 END)
+            / relay_statuses_per_day.count AS avg_guard
+    FROM
+        statusentry,
+        (SELECT COUNT(*) AS count, DATE(validafter) AS date
+        FROM (SELECT DISTINCT validafter FROM statusentry) distinct_consensuse
+        GROUP BY DATE(validafter)) relay_statuses_per_day
+    WHERE DATE(validafter) = relay_statuses_per_day.date
+    GROUP BY DATE(validafter), relay_statuses_per_day.count
+    ORDER BY DATE(validafter);
+
+--Relay platforms
+--TODO more specific string handling
+CREATE VIEW relay_platforms_v AS
+    SELECT
+        DATE(validafter),
+        SUM(CASE WHEN platform LIKE '%Linux%' THEN 1 ELSE 0 END) /
+            relay_statuses_per_day.count AS avg_linux,
+        SUM(CASE WHEN platform LIKE '%Darwin%' THEN 1 ELSE 0 END) /
+            relay_statuses_per_day.count AS avg_darwin,
+        SUM(CASE WHEN platform LIKE '%BSD%' THEN 1 ELSE 0 END) /
+            relay_statuses_per_day.count AS avg_bsd,
+        SUM(CASE WHEN platform LIKE '%Windows%' THEN 1 ELSE 0 END) /
+            relay_statuses_per_day.count AS avg_windows
+    FROM descriptor_statusentry
+    JOIN
+        (SELECT COUNT(*) AS count, DATE(validafter) AS date
+            FROM (SELECT DISTINCT validafter FROM statusentry) distinct_consensuse
+            GROUP BY DATE(validafter)) relay_statuses_per_day
+        ON DATE(validafter) = relay_statuses_per_day.date
+    GROUP BY DATE(validafter), relay_statuses_per_day.count
+    ORDER BY DATE(validafter);
+
+--Relay versions
+CREATE VIEW relay_versions_v AS
+    SELECT
+        DATE(validafter),
+        substring(platform, 5, 5) as version,
+        COUNT(*) / relay_statuses_per_day.count as count
+    FROM
+        descriptor_statusentry
+    JOIN
+        (SELECT COUNT(*) AS count, DATE(validafter) AS date
+            FROM (SELECT DISTINCT validafter FROM statusentry) distinct_consensuse
+            GROUP BY DATE(validafter)) relay_statuses_per_day
+        ON DATE(validafter) = relay_statuses_per_day.date
+    GROUP BY DATE(validafter), version, count
+    ORDER BY DATE(validafter);
+
+
+--Materialized views
+
+--CREATE TABLE network_size_mv AS SELECT * FROM network_size_v;
+--CREATE TABLE relay_platforms_mv AS SELECT * FROM relay_playforms_v;
+--CREATE TABLE relay_versions_mv AS SELECT * FROM relay_versions_v;
+
+--GRANT SELECT ON network_size_mv TO ernie;
+--GRANT SELECT ON relay_platforms_mv TO ernie;
+--GRANT SELECT ON relay_versions_mv TO ernie;
