@@ -178,11 +178,11 @@ CREATE VIEW network_size_v AS
             / relay_statuses_per_day.count AS avg_exit,
         SUM(CASE WHEN isguard IS TRUE THEN 1 ELSE 0 END)
             / relay_statuses_per_day.count AS avg_guard
-    FROM
-        statusentry,
-        (SELECT COUNT(*) AS count, DATE(validafter) AS date
+    FROM statusentry
+    JOIN (SELECT COUNT(*) AS count, DATE(validafter) AS date
         FROM (SELECT DISTINCT validafter FROM statusentry) distinct_consensuse
         GROUP BY DATE(validafter)) relay_statuses_per_day
+    ON DATE(validafter) = relay_statuses_per_day.date
     WHERE DATE(validafter) = relay_statuses_per_day.date
     GROUP BY DATE(validafter), relay_statuses_per_day.count
     ORDER BY DATE(validafter);
@@ -201,11 +201,10 @@ CREATE VIEW relay_platforms_v AS
         SUM(CASE WHEN platform LIKE '%Windows%' THEN 1 ELSE 0 END) /
             relay_statuses_per_day.count AS avg_windows
     FROM descriptor_statusentry
-    JOIN
-        (SELECT COUNT(*) AS count, DATE(validafter) AS date
+    JOIN (SELECT COUNT(*) AS count, DATE(validafter) AS date
             FROM (SELECT DISTINCT validafter FROM statusentry) distinct_consensuse
             GROUP BY DATE(validafter)) relay_statuses_per_day
-        ON DATE(validafter) = relay_statuses_per_day.date
+    ON DATE(validafter) = relay_statuses_per_day.date
     GROUP BY DATE(validafter), relay_statuses_per_day.count
     ORDER BY DATE(validafter);
 
@@ -215,20 +214,26 @@ CREATE VIEW relay_versions_v AS
         DATE(validafter),
         substring(platform, 5, 5) as version,
         COUNT(*) / relay_statuses_per_day.count as count
-    FROM
-        descriptor_statusentry
-    JOIN
-        (SELECT COUNT(*) AS count, DATE(validafter) AS date
+    FROM descriptor_statusentry
+    JOIN (SELECT COUNT(*) AS count, DATE(validafter) AS date
             FROM (SELECT DISTINCT validafter FROM statusentry) distinct_consensuse
             GROUP BY DATE(validafter)) relay_statuses_per_day
-        ON DATE(validafter) = relay_statuses_per_day.date
+    ON DATE(validafter) = relay_statuses_per_day.date
     GROUP BY DATE(validafter), version, count
     ORDER BY DATE(validafter);
 
 
 --Materialized views
 
---CREATE TABLE network_size_mv AS SELECT * FROM network_size_v;
+----Network sizes. Total, 3 months, 1 month----
+--CREATE TABLE network_size_total_mv AS
+--    SELECT * FROM network_size_v;
+--CREATE TABLE network_size_3m_mv AS
+--    SELECT * FROM network_size_v WHERE DATE_PART('month', AGE(date)) <= 3;
+--CREATE TABLE network_size_1m_mv AS
+--    SELECT * FROM network_size_v WHERE DATE_PART('month', AGE(date)) <= 1;
+
+
 --CREATE TABLE relay_platforms_mv AS SELECT * FROM relay_playforms_v;
 --CREATE TABLE relay_versions_mv AS SELECT * FROM relay_versions_v;
 
