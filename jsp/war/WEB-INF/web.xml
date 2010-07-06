@@ -26,6 +26,14 @@
     <servlet-name>ExoneraTor</servlet-name>
     <servlet-class>org.torproject.ernie.web.ExoneraTorServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>ImageServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.ImageServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ImageServlet</servlet-name>
+    <url-pattern>/graphs/networksize/*</url-pattern>
+  </servlet-mapping>
   <servlet-mapping>
     <servlet-name>ExoneraTor</servlet-name>
     <url-pattern>/exonerator.html</url-pattern>
