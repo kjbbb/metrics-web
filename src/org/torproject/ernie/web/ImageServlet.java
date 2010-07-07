@@ -160,6 +160,7 @@ public class ImageServlet extends HttpServlet {
       for (int i = 0; i < rgraph.length; i++) {
         rc.voidEval(rgraph[i]);
       }
+      rc.close();
     } catch (Exception e) {
     }
   }
