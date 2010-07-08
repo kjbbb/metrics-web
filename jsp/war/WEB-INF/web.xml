@@ -32,7 +32,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>ImageServlet</servlet-name>
-    <url-pattern>/graphs/networksize/*</url-pattern>
+    <url-pattern>/graph.png</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>ExoneraTor</servlet-name>

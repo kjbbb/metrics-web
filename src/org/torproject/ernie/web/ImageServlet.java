@@ -40,17 +40,24 @@ public class ImageServlet extends HttpServlet {
     Set<String> knownImages = new HashSet<String>(Arrays.asList(
           "72h,30d,90d,180d,all".split(",")));
 
+    Set<String> knownGraphs = new HashSet<String>(Arrays.asList(
+          "networksize,bandwidth," +
+          "versions,platforms".split(",")));
+
+    String graph = "networksize";
     String range = request.getParameter("range");
     String sp = request.getParameter("s");
     String ep = request.getParameter("e");
     String basePath = "/tmp/ernie/graphs/";
-    String graph = "networksize-";
+    String path;
     String start;
     String end;
     Calendar now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
+      graph = request.getParameter("g").trim();
+
     //Set defaults in case anything goes wrong
-    //Default is 30 days graph
+    //Default range is 30 days
     now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     end = c.simpledf.format(now.getTime());
     now.add(Calendar.DATE, -30);
@@ -108,21 +115,20 @@ public class ImageServlet extends HttpServlet {
       }
     }
 
-    //graph="/tmp/ernie/graphs/graph.png";
-    graph = basePath + graph + Long.toString(System.currentTimeMillis()) + ".png";
+    path = basePath + Long.toString(System.currentTimeMillis()) + ".png";
 
-    generateGraph(graph, start, end);
+    generateGraph(graph, start, end, path);
 
     /* Read file from disk and write it to response. */
     BufferedInputStream input = null;
     BufferedOutputStream output = null;
     try {
-      File imageFile = new File(graph);
+      File imageFile = new File(path);
       response.setContentType("image/png");
       response.setHeader("Content-Length", String.valueOf(
           imageFile.length()));
       response.setHeader("Content-Disposition",
-          "inline; filename=\"networksize.png\"");
+          "inline; filename=\"graph.png\"");
       input = new BufferedInputStream(new FileInputStream(imageFile),
           1024);
       output = new BufferedOutputStream(response.getOutputStream(), 1024);
@@ -132,34 +138,20 @@ public class ImageServlet extends HttpServlet {
           output.write(buffer, 0, length);
       }
     } finally {
-      //TODO
-      //write an error image on fail
-      output.close();
-      input.close();
+      if (output != null)
+        output.close();
+      if (input != null)
+        input.close();
     }
   }
 
-  private void generateGraph(String path, String start, String end)  {
-    String[] rgraph = {
-      "drv<- dbDriver(\"PostgreSQL\")",
-      "con<- dbConnect(drv, user=\"ernie\", password=\"\", dbname=\"tordir\")",
-      "rs <- dbSendQuery(con, \"select * from network_size where date >='" + start + "' and date <='" + end + "'\")",
-      "networksize <- fetch(rs, n=-1)",
-      "networksize <- melt(networksize, id=\"date\")",
-      "ggplot(networksize, aes(x = as.Date(date, \"%Y-%m-%d\"), y = value," +
-        "colour = variable)) + geom_line() +" +
-        "scale_x_date(name=\"\") +" +
-        "scale_y_continuous(name=\"\") +" +
-        "scale_colour_hue(\"\",breaks=c(\"avg_running\",\"avg_exit\",\"avg_guard\"),labels=c(\"Running\",\"Exit\",\"Guard\"))",
-      "ggsave(filename=\"" + path + "\", width=8, height=5, dpi=72)",
-      "dbDisconnect(con)",
-      "dbUnloadDriver(drv)"
-    };
+  private void generateGraph(String graph, String start, String end, String path)  {
+    String rquery = "plot_" + graph + "('" +
+        start + "','" + end + "','" + path +"')";
+    //rquery="plot_networksize('" + start + "','" + end + "','" + path + "')";
     try {
       RConnection rc = new RConnection();
-      for (int i = 0; i < rgraph.length; i++) {
-        rc.voidEval(rgraph[i]);
-      }
+      rc.eval(rquery);
       rc.close();
     } catch (Exception e) {
     }
