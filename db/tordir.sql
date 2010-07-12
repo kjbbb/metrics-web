@@ -72,6 +72,40 @@ CREATE TABLE descriptor_statusentry (
     isv3dir boolean DEFAULT false
 );
 
+CREATE TABLE torperf (
+    source character varying(40) NOT NULL,
+    validafter timestamp without time zone,
+    q1 integer,
+    md integer,
+    q3 integer
+);
+
+--TODO specific packages/bundles
+CREATE TABLE gettor (
+    validafter timestamp without time zone,
+    requested integer
+);
+
+CREATE TABLE bridge_users (
+    descriptor character(40) NOT NULL,
+    time timestamp without time zone
+);
+
+CREATE TABLE countries (
+    descriptor character(40) NOT NULL,
+    country character(2) NOT NULL,
+    count integer
+);
+
+CREATE TABLE v022descriptors (
+    descriptor character(40) NOT NULL,
+    time timestamp without time zone
+);
+
+CREATE TABLE hashed_relays (
+    descriptor character(40) NOT NULL
+);
+
 ALTER TABLE ONLY descriptor
     ADD CONSTRAINT descriptor_pkey PRIMARY KEY (descriptor);
 
@@ -81,9 +115,23 @@ ALTER TABLE ONLY statusentry
 --ALTER TABLE ONLY descriptor_statusentry
 --    ADD CONSTRAINT descriptor_statusentry_pkey PRIMARY KEY (validafter, descriptor);
 
+ALTER TABLE ONLY torperf
+    ADD CONSTRAINT torperf_pkey PRIMARY KEY (source, validafter);
+
+ALTER TABLE ONLY gettor
+    ADD CONSTRAINT gettor_pkey PRIMARY KEY (validafter);
+
+ALTER TABLE ONLY bridge_users
+    ADD CONSTRAINT bridge_users_pkey PRIMARY KEY (descriptor, validafter);
+
+ALTER TABLE ONLY countries
+    ADD CONSTRAINT countries_pkey PRIMARY KEY (descriptor);
+
 CREATE INDEX descriptorid ON descriptor USING btree (descriptor);
 CREATE INDEX statusentryid ON statusentry USING btree (descriptor, validafter);
 CREATE INDEX descriptorstatusid ON descriptor_statusentry USING btree (descriptor, validafter);
+CREATE INDEX bridgeusersid ON bridge_users USING btree (descriptor);
+CREATE INDEX countriesid ON countries USING btree (descriptor);
 
 CREATE LANGUAGE plpgsql;
 
