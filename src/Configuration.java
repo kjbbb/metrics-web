@@ -32,6 +32,7 @@ public class Configuration {
   private String directoryArchivesDirectory = "archives/";
   private boolean keepDirectoryArchiveImportHistory = false;
   private boolean writeRelayDescriptorDatabase = false;
+  private boolean writeBridgeDescriptorDatabase = false;
   private String relayDescriptorDatabaseJdbc =
       "jdbc:postgresql://localhost/tordir?user=ernie&password=password";
   private boolean writeSanitizedBridges = false;
@@ -134,6 +135,9 @@ public class Configuration {
         } else if (line.startsWith("WriteRelayDescriptorDatabase")) {
           this.writeRelayDescriptorDatabase = Integer.parseInt(
               line.split(" ")[1]) != 0;
+        } else if (line.startsWith("WriteBridgeDescriptorDatabase")) {
+          this.writeBridgeDescriptorDatabase = Integer.parseInt(
+              line.split(" ")[1]) != 0;
         } else if (line.startsWith("RelayDescriptorDatabaseJDBC")) {
           this.relayDescriptorDatabaseJdbc = line.split(" ")[1];
         } else if (line.startsWith("WriteSanitizedBridges")) {
@@ -232,6 +236,7 @@ public class Configuration {
         !this.downloadProcessGetTorStats && !this.downloadExitList &&
         !this.writeDirectoryArchives &&
         !this.writeRelayDescriptorDatabase &&
+        !this.writeBridgeDescriptorDatabase &&
         !this.writeSanitizedBridges && !this.writeConsensusStats &&
         !this.writeDirreqStats && !this.writeBridgeStats &&
         !this.writeServerDescriptorStats && !this.writeConsensusHealth) {
@@ -270,7 +275,7 @@ public class Configuration {
     }
     if ((this.importSanitizedBridges || this.importBridgeSnapshots) &&
         !(this.writeSanitizedBridges || this.writeConsensusStats ||
-        this.writeBridgeStats)) {
+        this.writeBridgeStats || this.writeBridgeDescriptorDatabase)) {
       logger.warning("We are configured to import/download bridge "
           + "descriptors, but we don't have a single data sink to write "
           + "bridge descriptors to.");
@@ -329,6 +334,9 @@ public class Configuration {
   }
   public boolean getWriteRelayDescriptorDatabase() {
     return this.writeRelayDescriptorDatabase;
+  }
+  public boolean getWriteBridgeDescriptorDatabase() {
+    return this.writeBridgeDescriptorDatabase;
   }
   public String getRelayDescriptorDatabaseJDBC() {
     return this.relayDescriptorDatabaseJdbc;
