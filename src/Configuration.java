@@ -51,6 +51,7 @@ public class Configuration {
   private boolean downloadProcessGetTorStats = false;
   private String getTorStatsUrl = "http://gettor.torproject.org:8080/"
       + "~gettor/gettor_stats.txt";
+  private boolean writeGetTorDatabase = false;
   private boolean downloadExitList = false;
   private boolean importGeoIPDatabases = false;
   private String geoIPDatabasesDirectory = "geoipdb/";
@@ -141,6 +142,9 @@ public class Configuration {
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("WriteTorperfDatabase")) {
           this.writeTorperfDatabase = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("WriteGetTorDatabase"))  {
+          this.writeGetTorDatabase = Integer.parseInt(
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("RelayDescriptorDatabaseJDBC")) {
           this.relayDescriptorDatabaseJdbc = line.split(" ")[1];
@@ -242,6 +246,7 @@ public class Configuration {
         !this.writeRelayDescriptorDatabase &&
         !this.writeBridgeDescriptorDatabase &&
         !this.writeTorperfDatabase &&
+        !this.writeGetTorDatabase &&
         !this.writeSanitizedBridges && !this.writeConsensusStats &&
         !this.writeDirreqStats && !this.writeBridgeStats &&
         !this.writeServerDescriptorStats && !this.writeConsensusHealth) {
@@ -345,6 +350,9 @@ public class Configuration {
   }
   public boolean getWriteTorperfDatabase() {
     return this.writeTorperfDatabase;
+  }
+  public boolean getWriteGetTorDatabase() {
+    return this.writeGetTorDatabase;
   }
   public String getRelayDescriptorDatabaseJDBC() {
     return this.relayDescriptorDatabaseJdbc;
