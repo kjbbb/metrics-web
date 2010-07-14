@@ -44,6 +44,7 @@ public class Configuration {
   private String bridgeSnapshotsDirectory = "bridge-directories/";
   private boolean importWriteTorperfStats = false;
   private String torperfDirectory = "torperf/";
+  private boolean writeTorperfDatabase = false;
   private boolean downloadRelayDescriptors = false;
   private List<String> downloadFromDirectoryAuthorities = Arrays.asList(
       "86.59.21.38,194.109.206.212,80.190.246.100:8180".split(","));
@@ -137,6 +138,9 @@ public class Configuration {
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("WriteBridgeDescriptorDatabase")) {
           this.writeBridgeDescriptorDatabase = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("WriteTorperfDatabase")) {
+          this.writeTorperfDatabase = Integer.parseInt(
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("RelayDescriptorDatabaseJDBC")) {
           this.relayDescriptorDatabaseJdbc = line.split(" ")[1];
@@ -237,6 +241,7 @@ public class Configuration {
         !this.writeDirectoryArchives &&
         !this.writeRelayDescriptorDatabase &&
         !this.writeBridgeDescriptorDatabase &&
+        !this.writeTorperfDatabase &&
         !this.writeSanitizedBridges && !this.writeConsensusStats &&
         !this.writeDirreqStats && !this.writeBridgeStats &&
         !this.writeServerDescriptorStats && !this.writeConsensusHealth) {
@@ -337,6 +342,9 @@ public class Configuration {
   }
   public boolean getWriteBridgeDescriptorDatabase() {
     return this.writeBridgeDescriptorDatabase;
+  }
+  public boolean getWriteTorperfDatabase() {
+    return this.writeTorperfDatabase;
   }
   public String getRelayDescriptorDatabaseJDBC() {
     return this.relayDescriptorDatabaseJdbc;
