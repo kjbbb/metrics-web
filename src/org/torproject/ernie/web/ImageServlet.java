@@ -28,96 +28,39 @@ import org.rosuda.REngine.*;
 public class ImageServlet extends HttpServlet {
 
   Constants c;
+  String basePath;
 
   public ImageServlet ()  {
     c = new Constants();
+
+    basePath = "/tmp/ernie/graphs/";
+
+    /* Create temp graphs directory if it doesn't exist. */
+    File dir = new File(basePath);
+    if (!dir.exists())  {
+      dir.mkdirs();
+    }
+
+    /* Change directory permissions to allow it to be written to
+     * by Rserve. */
+    try {
+      Runtime rt = Runtime.getRuntime();
+      rt.exec("chmod 777 " + basePath).waitFor();
+    } catch (IOException e) {
+      //Handle this?
+    } catch (InterruptedException e)  {
+      //Handle this?
+    }
   }
 
   public void doGet(HttpServletRequest request,
       HttpServletResponse response) throws IOException,
       ServletException {
 
-    Set<String> knownImages = new HashSet<String>(Arrays.asList(
-          "72h,30d,90d,180d,all".split(",")));
+    String path = basePath + Long.toString(System.currentTimeMillis()) + ".png";
 
-    Set<String> knownGraphs = new HashSet<String>(Arrays.asList(
-          "networksize,bandwidth," +
-          "versions,platforms".split(",")));
-
-    String graph = "networksize";
-    String range = request.getParameter("range");
-    String sp = request.getParameter("s");
-    String ep = request.getParameter("e");
-    String basePath = "/tmp/ernie/graphs/";
-    String path;
-    String start;
-    String end;
-    Calendar now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-
-      graph = request.getParameter("g").trim();
-
-    //Set defaults in case anything goes wrong
-    //Default range is 30 days
-    now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-    end = c.simpledf.format(now.getTime());
-    now.add(Calendar.DATE, -30);
-    start = c.simpledf.format(now.getTime());
-
-    /*The options for the pre-defined graphs from the menu*/
-    if (range != null)  {
-      if (range.equals("all"))  {
-        //Find lowest date and highest date
-        try {
-          PreparedStatement psAll = c.conn.prepareStatement(
-            "select date(min(validafter)) as min, " +
-            "date(max(validafter)) as max " +
-            "from statusentry"
-          );
-          ResultSet rsAll = psAll.executeQuery();
-          if (rsAll.next())  {
-            start = rsAll.getString("min");
-            end = rsAll.getString("max");
-          }
-        } catch (SQLException e)  {
-        }
-      }
-      if (range.toLowerCase().endsWith("d")) {
-          int days = Integer.parseInt(range.substring(0, range.length() -1));
-          end = c.simpledf.format(now.getTime());
-          now.add(Calendar.DATE, -days);
-          start = c.simpledf.format(now.getTime());
-          now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-      }
-      else if (range.toLowerCase().endsWith("y")) {
-        try {
-          int year = Integer.parseInt(range.substring(0, range.length()-1));
-          Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-          cal.set(Calendar.YEAR, year);
-          cal.set(Calendar.MONTH, Calendar.JANUARY);
-          cal.set(Calendar.DAY_OF_MONTH, 1);
-          start = c.simpledf.format(cal.getTime());
-          cal.set(Calendar.YEAR, year+1);
-          end = c.simpledf.format(cal.getTime());
-        } catch (IndexOutOfBoundsException e) {
-        }
-      }
-    }
-
-    /*The user entered a custom date range*/
-    if (sp != null && ep != null) {
-     //Do this to catch any parse errors
-      try {
-        Date ds = c.simpledf.parse(sp);
-        Date de = c.simpledf.parse(ep);
-        start = c.simpledf.format(ds);
-        end = c.simpledf.format(de);
-      } catch (Exception e) {
-      }
-    }
-
-    path = basePath + Long.toString(System.currentTimeMillis()) + ".png";
-
-    generateGraph(graph, start, end, path);
+    /* Generate the graph in the temporary files directory. */
+    generateGraph(request, path);
 
     /* Read file from disk and write it to response. */
     BufferedInputStream input = null;
@@ -145,15 +88,98 @@ public class ImageServlet extends HttpServlet {
     }
   }
 
-  private void generateGraph(String graph, String start, String end, String path)  {
-    String rquery = "plot_" + graph + "('" +
-        start + "','" + end + "','" + path +"')";
-    //rquery="plot_networksize('" + start + "','" + end + "','" + path + "')";
+/**
+ * Communicate with Rserve and generate graph based on the HTTP
+ * Get parameters.
+ */
+  private void generateGraph(HttpServletRequest request, String path)  {
+
+    /* The mandatory start and end parameters passed in the request. */
+    String sp = request.getParameter("start");
+    String ep = request.getParameter("end");
+
+    /* The mandatory graph parameter. */
+    String graph = request.getParameter("graph");;
+
+    /* Torperf specific source and size parameters. */
+    String source = request.getParameter("source");
+    String size = request.getParameter("size");
+
+    /* GetTor specific bundle parameter. */
+    String bundle = request.getParameter("bundle");
+
+    /* Bridge-users specific countries parameter. */
+    String country = request.getParameter("country");
+
+    /* The valid graph input ranges that are checked. */
+    Set<String> knownGraphs = new HashSet<String>(Arrays.asList(
+          "networksize,bandwidth,versions,platforms,gettor" +
+          "torperf,bridge_users".split(",")));
+
+    /* This map contains different plots and their parameters which are
+     * available in the Rserve instance. Keep in mind that some plots accept
+     * different parameters, but all of them accept a start and end time
+     * (yyyy-mm-dd) and an output path. All of the necessary parameters must be
+     * passed in the request array. * See rserve/rserve-init.R for more information
+     * on how to feed parameters to the R plots. */
+
+    Map<String, String> rQueries = new HashMap<String, String>();
+    rQueries.put("networksize","plot_networksize('%s', '%s', '%s')");
+    rQueries.put("bandwidth","plot_bandwidth('%s', '%s', '%s')");
+    rQueries.put("versions","plot_versions('%s', '%s', '%s')");
+    rQueries.put("platforms","plot_platforms('%s', '%s', '%s')");
+    rQueries.put("gettor","plot_gettor('%s', '%s', '%s', '%s')");
+    rQueries.put("torperf","plot_torperf('%s', '%s', '%s', '%s', '%s')");
+    rQueries.put("bridge_users","plot_bridge_users('%s', '%s', '%s', '%s')");
+
+    Calendar start = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    Calendar end   = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+    /* Parse graph parameter, set default if it is non valid. */
+    if (graph == null && !knownGraphs.contains(graph.toLowerCase())) {
+      graph = "networksize";
+    }
+
+    /* Parse start and end time inputs, otherwise set defaults. */
+    try {
+      start.setTime(c.simpledf.parse((sp != null) ? sp : "1970-01-01"));
+      end.setTime(c.simpledf.parse((ep != null) ? ep : c.simpledf.format(
+          end.getTime())));
+    } catch (ParseException e)  {
+    }
+
+    /* Insert generated parameters to R graphs. Torperf, gettor,
+     * and bridge-users contain special parameters. */
+    String rQuery;
+    if (graph.equals("gettor"))  {
+      rQuery = String.format(rQueries.get("gettor"),
+          c.simpledf.format(start.getTime()),
+          c.simpledf.format(end.getTime()), path,
+          (bundle != null) ? bundle : "en");
+    } else if (graph.equals("torperf")) {
+      rQuery = String.format(rQueries.get("torperf"),
+          c.simpledf.format(start.getTime()),
+          c.simpledf.format(end.getTime()), path,
+          (source != null) ? source : "moria",
+          (size != null) ? size : "1mb");
+    } else if (graph.equals("bridge-users"))  {
+      rQuery = String.format(rQueries.get("bridge-users"),
+          c.simpledf.format(start.getTime()),
+          c.simpledf.format(end.getTime()), path,
+          (country != null) ? country : "ch");
+    } else { /* Just send start, end, path. */
+      rQuery = String.format(rQueries.get(graph),
+          c.simpledf.format(start.getTime()),
+          c.simpledf.format(end.getTime()), path);
+    }
+
+    /* Send request to Rserve. */
     try {
       RConnection rc = new RConnection();
-      rc.eval(rquery);
+      rc.eval(rQuery);
       rc.close();
     } catch (Exception e) {
+      return;
     }
   }
 }
