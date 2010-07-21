@@ -39,6 +39,9 @@
         <a <%if (template.getTemplateName().contains("gettor")) {%>
             class="current" <%} else {%>
             href="/gettor-graphs.html"<%}%>>GetTor</a>
+        <a <%if (template.getTemplateName().contains("custom-graph")) {%>
+            class="current" <%} else {%>
+            href="/custom-graph.html"<%}%>>Custom Graph</a>
       </font>
     <%} else if (template.getTemplateName().startsWith("status")) {%>
       <br/>
