@@ -74,4 +74,8 @@
       <from>/status.html</from>
       <to>/status.jsp</to>
     </rule>
+    <rule>
+      <from>/exonerator.html</from>
+      <to>exonerator.jsp</to>
+    </rule>
 </urlrewrite>

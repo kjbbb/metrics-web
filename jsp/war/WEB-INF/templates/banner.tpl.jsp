@@ -43,7 +43,9 @@
     <%} else if (template.getTemplateName().startsWith("status")) {%>
       <br/>
       <font size="2">
-        <a href="/exonerator.html">ExoneraTor</a>
+        <a <%if (template.getTemplateName().contains("exonerator")) {%>
+            class="current" <%} else {%>
+            href="/exonerator.html"<%}%>>ExoneraTor</a>
         <a href="/consensus-health.html">Consensus Health</a>
         <a href="/log.html">Last Log</a>
       </font>
