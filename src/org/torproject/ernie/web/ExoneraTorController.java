@@ -49,7 +49,7 @@ public class ExoneraTorController {
   }
   public Map<String, String> getResults() {
 
-    Map<String, String> relays;
+    HashMap<String, String> relays = new HashMap<String, String>();
 
     /* Check if IP address matches regular expression */
     if (!Pattern.matches("ipRegex", address)) {
@@ -70,17 +70,17 @@ public class ExoneraTorController {
       min.add(Calendar.HOUR, -3);
 
       psRelays.setString(1, address);
-      psRelays.setTimestamp(2, min);
-      psRelays.setTimestsmp(3, max);
+      psRelays.setTime(2, new Time(min.getTime().getTime()));
+      psRelays.setTime(3, new Time(max.getTime().getTime()));
 
-      rs = psRelays.execute();
+      rs = psRelays.executeQuery();
 
       while (rs.next()) {
         Date validafter;
         String descriptor;
-        validafter = rs.getTimestamp("validafter");
+        validafter = rs.getDate("validafter");
         descriptor = rs.getString("descriptor");
-        relays.put(validafter, descriptor);
+        relays.put(validafter.toString(), descriptor);
       }
 
       return relays;
@@ -91,7 +91,7 @@ public class ExoneraTorController {
       setError("Enter a valid timestamp.");
     }
     setError("No results");
-    return relays.put("","");
+    return null;
   }
 
   private void setError(String error) {
