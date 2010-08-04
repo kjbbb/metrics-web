@@ -19,7 +19,9 @@ plot_bandwidth_versions_boxplot <- function(start, end, path, limit=0) {
     geom_boxplot(outlier.size=1) +
     scale_y_continuous(name="Bandwidth (Mbit/s)", limits=c(0, limit)) +
     scale_x_discrete(name="Version") +
-    opts(title="Bandwidth per version")
+    opts(title=paste("Bandwidth per version ",
+        ifelse(limit!=max(bandwidth$bandwidthavg),
+            paste("(limit: ",limit," Mbit/s)", sep=""),""), sep=""))
 
   ggsave(filename=path, width=8, height=5, dpi=72)
 
@@ -53,7 +55,9 @@ plot_bandwidth_platforms_boxplot <- function(start, end, path, limit=0)  {
     geom_boxplot(outlier.size=1) +
     scale_y_continuous(name="Bandwidth (Mbit/s)", limits=c(0, limit)) +
     scale_x_discrete(name="Platform") +
-    opts(title="Bandwidth per platform")
+    opts(title=paste("Bandwidth per platform ",
+        ifelse(limit!=max(bandwidth$bandwidthavg),
+            paste("(limit: ",limit," Mbit/s)", sep=""),""), sep=""))
 
   ggsave(filename=path, width=8, height=5, dpi=72)
 
@@ -61,6 +65,7 @@ plot_bandwidth_platforms_boxplot <- function(start, end, path, limit=0)  {
   dbDisconnect(con)
   dbUnloadDriver(drv)
 }
+
 plot_exit_uptime_boxplot <- function(start, end, path, limit=0) {
 
   drv <- dbDriver("PostgreSQL")
@@ -82,14 +87,27 @@ plot_exit_uptime_boxplot <- function(start, end, path, limit=0) {
 
   limit = ifelse(limit==0, max(exituptime$uptime), limit)
 
+  breaks <- c("tt", "tf", "ft", "ff")
+  labels <- c("Guard and Exit", "Guard and No Exit",
+      "No Guard and Exit", "No Guard and No Exit")
+
+  #Append the counts to the legend
+  #labels_with_count <- as.vector(length(breaks))
+
+  #for(c in 1:length(labels))  {
+  #  labels_with_count[c] <- paste(labels[c]," ",
+  #      sum(exituptime$guardexit == breaks[c]), sep="")
+  #}
+
   ggplot(exituptime, aes(y=uptime, x=guardexit, fill=guardexit)) +
     geom_boxplot(outlier.size=1) +
     scale_y_continuous(name="Uptime (days)", limits=c(0, limit)) +
     scale_x_discrete(name="Guard/Exit flags") +
-    scale_colour_brewer(name="Guard/exit flags",
-        breaks=c("ff", "tf", "tt", "ft"),
-        labels=c("f,f", "t,f", "t,t", "f,t"))
-    opts(title="Guard, exit, and relay uptime")
+    scale_fill_brewer(name="Guard/exit flags",
+        breaks=breaks, labels=labels) +
+    opts(title=paste("Guard, exit, and relay uptime ",
+        ifelse(limit!=max(exituptime$uptime),
+            paste("(limit: ",limit," days)", sep=""),""), sep=""))
 
   ggsave(filename=path, width=8, height=5, dpi=72)
 
@@ -120,7 +138,9 @@ plot_version_uptime_boxplot <- function(start, end, path, limit=0) {
     geom_boxplot(outlier.size=1) +
     scale_y_continuous(name="Uptime (days)", limits=c(0, limit)) +
     scale_x_discrete(name="Version") +
-    opts(title="Version uptime")
+    opts(title=paste("Version uptime ",
+        ifelse(limit!=max(versionuptime$uptime),
+            paste("(limit: ",limit," days)", sep=""),""), sep=""))
 
   ggsave(filename=path, width=8, height=5, dpi=72)
 
@@ -140,7 +160,7 @@ plot_platform_uptime_boxplot <- function(start, end, path, limit=0)  {
     "    (case when platform like '%Windows%' then 'Windows' ",
     "        when platform like '%Linux%' then 'Linux' ",
     "        when platform like '%FreeBSD%' then 'FreeBSD' ",
-    "        when platform like '%Darwin%' then 'Darwin' else 'other' end) as ",
+    "        when platform like '%Darwin%' then 'Darwin' else 'Other' end) as ",
     "        platform ",
     "from descriptor d ",
     "join statusentry s on d.descriptor=s.descriptor ",
@@ -149,15 +169,31 @@ plot_platform_uptime_boxplot <- function(start, end, path, limit=0)  {
     "   and s.validafter <= '",end,"' ", sep="")
 
   rs <- dbSendQuery(con, q)
-  platformsuptime <- fetch(rs,n=-1)
+  puptime <- fetch(rs,n=-1)
 
-  limit = ifelse(limit==0, max(platformsuptime$uptime), limit)
+  limit <- ifelse(limit==0, max(puptime$uptime), limit)
 
-  ggplot(platformsuptime, aes(y=uptime, x=platform, fill=platform))  +
+  #Group the platforms for the legend
+  breaks <- as.vector(unique(puptime$platform))
+
+  #Specify the labels with counts concatenated on the end
+  labels <- as.vector(length(breaks))
+
+  for (c in 1:length(breaks)) {
+    labels[c] <- paste(breaks[c], " (",
+        sum(puptime$platform == breaks[c]), " )", sep="")
+  }
+
+  ggplot(puptime, aes(y=uptime, x=platform, fill=platform))  +
     geom_boxplot(outlier.size=1) +
-    scale_y_continuous(name="Uptime (days)", limits=c(0, limit)) +
+    scale_y_continuous(name="Uptime (days)",
+        limits=c(0, limit)) +
     scale_x_discrete(name="Platform") +
-    opts(title="Platform uptime")
+    scale_fill_brewer(name="Platform",
+        breaks=breaks, labels=labels) +
+    opts(title=paste("Platform uptime ",
+        ifelse(limit!=max(puptime$uptime),
+            paste("(limit: ",limit," days)", sep=""),""), sep=""))
 
   ggsave(filename=path, width=8, height=5, dpi=72)
 
@@ -165,7 +201,3 @@ plot_platform_uptime_boxplot <- function(start, end, path, limit=0)  {
   dbDisconnect(con)
   dbUnloadDriver(drv)
 }
-
-
-
-
