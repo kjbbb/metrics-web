@@ -1,5 +1,6 @@
 package org.torproject.ernie.web;
 
+import org.torproject.ernie.util.ErnieProperties;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
@@ -8,19 +9,16 @@ import java.lang.*;
 import org.rosuda.REngine.Rserve.*;
 import org.rosuda.REngine.*;
 
-
 public class GraphController {
 
-  private String baseDir;
-  private String graphName;
-  private Constants c;
+  private static final String baseDir;
+  private static final int cacheSize;
+  private final String graphName;
 
-  private final int cacheSize = 10000;
-
-  public GraphController (String graphName)  {
-    this.graphName = graphName;
-    this.baseDir = "/tmp/ernie/";
-    this.c = new Constants();
+  static {
+    ErnieProperties props = new ErnieProperties();
+    cacheSize = props.getInt("max.cached.graphs");
+    baseDir = props.getProperty("cached.graphs.dir");
 
     try {
       /* Create temp graphs directory if it doesn't exist. */
@@ -35,6 +33,10 @@ public class GraphController {
       rt.exec("chmod 777 " + baseDir).waitFor();
     } catch (InterruptedException e) {
     } catch (IOException e) {}
+  }
+
+  public GraphController (String graphName)  {
+    this.graphName = graphName;
   }
 
   public void writeOutput(String imagePath, HttpServletRequest request,
