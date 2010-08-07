@@ -45,18 +45,24 @@ public class GraphController {
     BufferedOutputStream output = null;
     try {
       File imageFile = new File(imagePath);
-      response.setContentType("image/png");
-      response.setHeader("Content-Length", String.valueOf(
-          imageFile.length()));
-      response.setHeader("Content-Disposition",
-          "inline; filename=\"" + graphName + ".png" + "\"");
-      input = new BufferedInputStream(new FileInputStream(imageFile),
-          1024);
-      output = new BufferedOutputStream(response.getOutputStream(), 1024);
-      byte[] buffer = new byte[1024];
-      int length;
-      while ((length = input.read(buffer)) > 0) {
-          output.write(buffer, 0, length);
+      /* If there was an error when generating the graph,
+       * set the header to 404 not found. */
+      if (!imageFile.exists())  {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      } else {
+        response.setContentType("image/png");
+        response.setHeader("Content-Length", String.valueOf(
+            imageFile.length()));
+        response.setHeader("Content-Disposition",
+            "inline; filename=\"" + graphName + ".png" + "\"");
+        input = new BufferedInputStream(new FileInputStream(imageFile),
+            1024);
+        output = new BufferedOutputStream(response.getOutputStream(), 1024);
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = input.read(buffer)) > 0) {
+            output.write(buffer, 0, length);
+        }
       }
     }
     finally {
