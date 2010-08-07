@@ -15,7 +15,7 @@ public class RelayBandwidthImageServlet extends HttpServlet {
   private final Constants c;
 
   public RelayBandwidthImageServlet()  {
-    this.graphName = "relay-bandwidth";
+    this.graphName = "bandwidth";
     this.gcontroller = new GraphController(graphName);
     this.rquery = "plot_bandwidth_line('%s', '%s', '%s')";
     this.c = new Constants();

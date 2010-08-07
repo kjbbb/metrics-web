@@ -28,7 +28,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>NetworkSizeImageServlet</servlet-name>
-    <url-pattern>/networksize-graph.png</url-pattern>
+    <url-pattern>/networksize.png</url-pattern>
   </servlet-mapping>
   <servlet>
     <servlet-name>RelayPlatformsImageServlet</servlet-name>
@@ -36,7 +36,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>RelayPlatformsImageServlet</servlet-name>
-    <url-pattern>/platforms-graph.png</url-pattern>
+    <url-pattern>/platforms.png</url-pattern>
   </servlet-mapping>
   <servlet>
     <servlet-name>RelayVersionsImageServlet</servlet-name>
@@ -44,7 +44,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>RelayVersionsImageServlet</servlet-name>
-    <url-pattern>/versions-graph.png</url-pattern>
+    <url-pattern>/versions.png</url-pattern>
   </servlet-mapping>
   <servlet>
     <servlet-name>RelayBandwidthImageServlet</servlet-name>
@@ -52,7 +52,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>RelayBandwidthImageServlet</servlet-name>
-    <url-pattern>/bandwidth-graph.png</url-pattern>
+    <url-pattern>/bandwidth.png</url-pattern>
   </servlet-mapping>
   <servlet>
     <servlet-name>ExoneraTor</servlet-name>
