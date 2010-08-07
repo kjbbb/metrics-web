@@ -42,7 +42,7 @@
       <classpath refid="jsp-master-classpath"/>
     </javac>
     <copy file="${jsp-confdir}/ernie.properties"
-          todir="${jsp-webdir}/WEB-INF" />
+          todir="${jsp-builddir}" />
   </target>
 
   <target name="jsp-deploy" depends="jsp-build" description="Deploy JSP application">
