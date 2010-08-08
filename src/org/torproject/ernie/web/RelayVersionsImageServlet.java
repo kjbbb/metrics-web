@@ -46,7 +46,6 @@ public class RelayVersionsImageServlet extends HttpServlet {
       }
 
       gcontroller.writeOutput(path, request, response);
-      gcontroller.deleteLRUgraph();
 
     } catch (NullPointerException e) {
     } catch (ParseException e) {

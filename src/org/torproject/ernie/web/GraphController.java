@@ -14,11 +14,15 @@ public class GraphController {
   private static final String baseDir;
   private static final int cacheSize;
   private final String graphName;
+  private static int cacheClearRequests;
+  private static int requests;
 
   static {
     ErnieProperties props = new ErnieProperties();
     cacheSize = props.getInt("max.cached.graphs");
     baseDir = props.getProperty("cached.graphs.dir");
+    cacheClearRequests = props.getInt("cache.clear.requests");
+    requests = 0;
 
     try {
       /* Create temp graphs directory if it doesn't exist. */
@@ -65,6 +69,10 @@ public class GraphController {
         while ((length = input.read(buffer)) > 0) {
             output.write(buffer, 0, length);
         }
+        requests++;
+        if (requests  == cacheClearRequests) {
+          deleteLRUgraph();
+        }
       }
     }
     finally {
@@ -86,14 +94,15 @@ public class GraphController {
   }
 
   /* Caching mechanism to delete the least recently
-   * used graph. */
+   * used graph every X requests. */
   public void deleteLRUgraph()  {
-    //TODO
     File dir = new File(baseDir);
     List<File> flist = Arrays.asList(dir.listFiles());
-    if (flist.size() > cacheSize)  {
+    if (flist.size() > (cacheSize + cacheClearRequests))  {
       Collections.sort(flist);
-      flist.get(0).delete();
+      for (int i = 0; i <= cacheClearRequests; i++) {
+        flist.get(i).delete();
+      }
     }
   }
 
