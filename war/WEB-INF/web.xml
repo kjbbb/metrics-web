@@ -63,6 +63,14 @@
     <url-pattern>/torperf.png</url-pattern>
   </servlet-mapping>
   <servlet>
+    <servlet-name>PlatformsUptimeBoxplotServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.PlatformsUptimeBoxplotServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PlatformsUptimeBoxplotServlet</servlet-name>
+    <url-pattern>/platform-uptime-boxplot.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
     <servlet-name>GetTorImageServlet</servlet-name>
     <servlet-class>org.torproject.ernie.web.GetTorImageServlet</servlet-class>
   </servlet>
