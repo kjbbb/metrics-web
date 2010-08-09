@@ -17,11 +17,16 @@ public class GraphController {
   private static int cacheClearRequests;
   private static int requests;
 
+  private static final int rservePort;
+  private static final String rserveHost;
+
   static {
     ErnieProperties props = new ErnieProperties();
     cacheSize = props.getInt("max.cached.graphs");
     baseDir = props.getProperty("cached.graphs.dir");
     cacheClearRequests = props.getInt("cache.clear.requests");
+    rservePort = props.getInt("rserve.port");
+    rserveHost = props.getProperty("rserve.host");
     requests = 0;
 
     try {
@@ -86,7 +91,7 @@ public class GraphController {
   public void generateGraph(String rquery)  {
     /* Send request to Rserve. */
     try {
-      RConnection rc = new RConnection();
+      RConnection rc = new RConnection(rserveHost, rservePort);
       rc.eval(rquery);
       rc.close();
     } catch (Exception e) {
