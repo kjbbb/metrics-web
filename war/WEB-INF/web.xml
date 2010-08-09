@@ -55,6 +55,22 @@
     <url-pattern>/bandwidth.png</url-pattern>
   </servlet-mapping>
   <servlet>
+    <servlet-name>TorperfImageServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.TorperfImageServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TorperfImageServlet</servlet-name>
+    <url-pattern>/torperf.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>GetTorImageServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.GetTorImageServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GetTorImageServlet</servlet-name>
+    <url-pattern>/gettor.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
     <servlet-name>ExoneraTor</servlet-name>
     <servlet-class>org.torproject.ernie.web.ExoneraTorServlet</servlet-class>
   </servlet>
