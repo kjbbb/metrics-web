@@ -12,13 +12,14 @@ public class NetworkSizeImageServlet extends HttpServlet {
   private final String rquery;
   private final String graphName;
   private final GraphController gcontroller;
-  private final Constants c;
+  private SimpleDateFormat simpledf;
 
   public NetworkSizeImageServlet()  {
     this.graphName = "networksize";
     this.gcontroller = new GraphController(graphName);
     this.rquery = "plot_networksize_line('%s', '%s', '%s')";
-    this.c = new Constants();
+    this.simpledf = new SimpleDateFormat("yyyy-MM-dd");
+    this.simpledf.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   public void doGet(HttpServletRequest request,
@@ -32,8 +33,8 @@ public class NetworkSizeImageServlet extends HttpServlet {
       end = request.getParameter("end");
 
       /* Validate input */
-      c.simpledf.parse(start);
-      c.simpledf.parse(end);
+      simpledf.parse(start);
+      simpledf.parse(end);
 
       md5file = DigestUtils.md5Hex(graphName + "-" + start + "-" + end);
       path = gcontroller.getBaseDir() + md5file + ".png";

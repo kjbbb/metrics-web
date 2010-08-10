@@ -13,7 +13,7 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
   private final String rquery;
   private final String graphName;
   private final GraphController gcontroller;
-  private final Constants c;
+  private SimpleDateFormat simpledf;
 
   static {
     ErnieProperties props = new ErnieProperties();
@@ -23,7 +23,8 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
     this.graphName = "platform-uptime-boxplot";
     this.gcontroller = new GraphController(graphName);
     this.rquery = "plot_platform_uptime_boxlpot('%s', '%s', '%s', limit=%s)";
-    this.c = new Constants();
+    this.simpledf = new SimpleDateFormat("yyyy-MM-dd");
+    this.simpledf.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   public void doGet(HttpServletRequest request,
@@ -39,8 +40,8 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
           request.getParameter("limit") ;
 
       /* Validate input */
-      c.simpledf.parse(start);
-      c.simpledf.parse(end);
+      simpledf.parse(start);
+      simpledf.parse(end);
 
       md5file = DigestUtils.md5Hex(graphName + "-" + start + "-" +
           end + "-" + limit);
