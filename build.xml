@@ -43,6 +43,8 @@
     </javac>
     <copy file="${jsp-confdir}/ernie.properties"
           todir="${jsp-builddir}" />
+    <copy file="${jsp-confdir}/logging.properties"
+          todir="${jsp-builddir}" />
   </target>
 
   <target name="jsp-deploy" depends="jsp-build" description="Deploy JSP application">
