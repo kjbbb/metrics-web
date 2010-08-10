@@ -6,13 +6,19 @@ import java.io.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.log4j.Logger;
 
 public class NetworkSizeImageServlet extends HttpServlet {
 
+  private static final Logger log;
   private final String rquery;
   private final String graphName;
   private final GraphController gcontroller;
   private SimpleDateFormat simpledf;
+
+  static {
+    log = Logger.getLogger(NetworkSizeImageServlet.class);
+  }
 
   public NetworkSizeImageServlet()  {
     this.graphName = "networksize";

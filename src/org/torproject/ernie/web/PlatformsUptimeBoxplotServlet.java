@@ -1,6 +1,7 @@
 package org.torproject.ernie.web;
 
 import org.torproject.ernie.util.ErnieProperties;
+import org.apache.log4j.Logger;
 import java.util.*;
 import java.text.*;
 import java.io.*;
@@ -14,9 +15,11 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
   private final String graphName;
   private final GraphController gcontroller;
   private SimpleDateFormat simpledf;
+  private static final Logger log;
 
   static {
     ErnieProperties props = new ErnieProperties();
+    log = Logger.getLogger(PlatformsUptimeBoxplotServlet.class);
   }
 
   public PlatformsUptimeBoxplotServlet()  {
@@ -31,8 +34,10 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
       HttpServletResponse response) throws IOException,
       ServletException {
 
+    String md5file, start = "", end = "", path, query, limit;
+    log.warn("sdcsdcs");
+
     try {
-      String md5file, start, end, path, query, limit;
 
       start = request.getParameter("start");
       end = request.getParameter("end");
@@ -40,8 +45,16 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
           request.getParameter("limit") ;
 
       /* Validate input */
-      simpledf.parse(start);
-      simpledf.parse(end);
+      try {
+        simpledf.parse(start);
+        simpledf.parse(end);
+        Integer.parseInt(limit);
+      } catch (ParseException e)  {
+        start = (start == null) ? "null" : start;
+        end = (end == null) ? "null" : end;
+        log.info("User entered invalid date: " + start + " : " + end + ", " + e);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      }
 
       md5file = DigestUtils.md5Hex(graphName + "-" + start + "-" +
           end + "-" + limit);
@@ -56,9 +69,10 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
 
       gcontroller.writeOutput(path, request, response);
 
-    } catch (ParseException e)  {
     } catch (NullPointerException e)  {
+      log.warn(e.toString());
     } catch (IOException e) {
+      log.warn(e.toString());
     }
   }
 }

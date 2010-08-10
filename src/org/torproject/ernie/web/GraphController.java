@@ -1,6 +1,7 @@
 package org.torproject.ernie.web;
 
 import org.torproject.ernie.util.ErnieProperties;
+import org.apache.log4j.Logger;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
@@ -11,6 +12,7 @@ import org.rosuda.REngine.*;
 
 public class GraphController {
 
+  private static final Logger log;
   private static final String baseDir;
   private static final int cacheSize;
   private final String graphName;
@@ -21,6 +23,7 @@ public class GraphController {
   private static final String rserveHost;
 
   static {
+    log = Logger.getLogger(PlatformsUptimeBoxplotServlet.class.toString());
     ErnieProperties props = new ErnieProperties();
     cacheSize = props.getInt("max.cached.graphs");
     baseDir = props.getProperty("cached.graphs.dir");

@@ -5,14 +5,20 @@ import java.text.*;
 import java.io.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
+import org.apache.log4j.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 
 public class RelayBandwidthImageServlet extends HttpServlet {
 
+  private static final Logger log;
   private final String rquery;
   private final String graphName;
   private final GraphController gcontroller;
   private SimpleDateFormat simpledf;
+
+  static {
+    log = Logger.getLogger(RelayBandwidthImageServlet.class);
+  }
 
   public RelayBandwidthImageServlet()  {
     this.graphName = "bandwidth";

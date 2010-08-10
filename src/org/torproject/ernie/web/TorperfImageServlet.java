@@ -1,6 +1,7 @@
 package org.torproject.ernie.web;
 
 import org.torproject.ernie.util.ErnieProperties;
+import org.apache.log4j.Logger;
 import java.util.*;
 import java.text.*;
 import java.io.*;
@@ -10,6 +11,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 public class TorperfImageServlet extends HttpServlet {
 
+  private static final Logger log;
   private final String rquery;
   private final String graphName;
   private final GraphController gcontroller;
@@ -18,6 +20,7 @@ public class TorperfImageServlet extends HttpServlet {
   private static final SortedSet<String> validSizes;
 
   static {
+    log = Logger.getLogger(TorperfImageServlet.class);
     ErnieProperties props = new ErnieProperties();
     validSources = new TreeSet<String>(Arrays.asList(
         props.getProperty("torperf.sources").split(",")));
