@@ -60,9 +60,9 @@ public class GraphController {
     try {
       File imageFile = new File(imagePath);
       /* If there was an error when generating the graph,
-       * set the header to 404 not found. */
+       * set the header to 400 bad request. */
       if (!imageFile.exists())  {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
       } else {
         response.setContentType("image/png");
         response.setHeader("Content-Length", String.valueOf(
