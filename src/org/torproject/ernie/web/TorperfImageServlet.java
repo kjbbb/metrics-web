@@ -15,16 +15,16 @@ public class TorperfImageServlet extends HttpServlet {
   private final String rquery;
   private final String graphName;
   private final GraphController gcontroller;
-  private final Constants c;
-  private static final SortedSet<String> validSources;
-  private static final SortedSet<String> validSizes;
+  private final SimpleDateFormat simpledf;
+  private static final Set<String> validSources;
+  private static final Set<String> validSizes;
 
   static {
     log = Logger.getLogger(TorperfImageServlet.class);
     ErnieProperties props = new ErnieProperties();
-    validSources = new TreeSet<String>(Arrays.asList(
+    validSources = new HashSet<String>(Arrays.asList(
         props.getProperty("torperf.sources").split(",")));
-    validSizes = new TreeSet<String>(Arrays.asList(
+    validSizes = new HashSet<String>(Arrays.asList(
         props.getProperty("torperf.sizes").split(",")));
   }
 
@@ -32,7 +32,8 @@ public class TorperfImageServlet extends HttpServlet {
     this.graphName = "torperf";
     this.gcontroller = new GraphController(graphName);
     this.rquery = "plot_torperf_line('%s', '%s', '%s', '%s', '%s')";
-    this.c = new Constants();
+    this.simpledf = new SimpleDateFormat("yyyy-MM-dd");
+    this.simpledf.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   public void doGet(HttpServletRequest request,
@@ -48,14 +49,19 @@ public class TorperfImageServlet extends HttpServlet {
       size = request.getParameter("size");
 
       /* Validate input */
-      c.simpledf.parse(start);
-      c.simpledf.parse(end);
+      if (start == null || end == null || source == null ||
+          size == null || !validSources.contains(source) ||
+          !validSizes.contains(size))  {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+          return;
+       }
 
-      /* Set 404 if the user entered invalud/null source and
-       * size parameters */
-      if (!validSources.contains(source) ||
-          !validSizes.contains(size)) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      try {
+        simpledf.parse(start);
+        simpledf.parse(end);
+      } catch (ParseException e)  {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        return;
       }
 
       md5file = DigestUtils.md5Hex(graphName + "-" + start + "-" + end
@@ -63,13 +69,13 @@ public class TorperfImageServlet extends HttpServlet {
       path = gcontroller.getBaseDir() + md5file + ".png";
 
       query = String.format(rquery, start, end, path, source, size);
-
       gcontroller.generateGraph(query, path);
       gcontroller.writeOutput(path, request, response);
 
     } catch (NullPointerException e) {
-    } catch (ParseException e) {
+      log.warn(e.toString());
     } catch (IOException e) {
+      log.warn(e.toString());
     }
   }
 }
