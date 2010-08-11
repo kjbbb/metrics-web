@@ -7,9 +7,11 @@ import java.io.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.log4j.Logger;
 
 public class GetTorImageServlet extends HttpServlet {
 
+  private static final Logger log;
   private final String rquery;
   private final String graphName;
   private final GraphController gcontroller;
@@ -17,6 +19,7 @@ public class GetTorImageServlet extends HttpServlet {
   private static final SortedSet<String> validBundles;
 
   static {
+    log = Logger.getLogger(GetTorImageServlet.class);
     ErnieProperties props = new ErnieProperties();
     validBundles = new TreeSet<String>(Arrays.asList(
         props.getProperty("gettor.bundles").split(",")));
@@ -41,11 +44,18 @@ public class GetTorImageServlet extends HttpServlet {
       bundle = request.getParameter("bundle");
 
       /* Validate input */
-      c.simpledf.parse(start);
-      c.simpledf.parse(end);
+      if (start == null || end == null || bundle == null ||
+          !validBundles.contains(bundle)) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+      }
 
-      if (!validBundles.contains(bundle)) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      try {
+        simpledf.parse(start);
+        simpledf.parse(end);
+      } catch (ParseException e)  {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        return;
       }
 
       md5file = DigestUtils.md5Hex(graphName + "-" + start + "-" +
@@ -61,9 +71,10 @@ public class GetTorImageServlet extends HttpServlet {
 
       gcontroller.writeOutput(path, request, response);
 
-    } catch (ParseException e)  {
     } catch (NullPointerException e)  {
+      log.warn(e.toString());
     } catch (IOException e) {
+      log.warn(e.toString());
     }
   }
 }

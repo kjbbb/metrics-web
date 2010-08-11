@@ -39,8 +39,13 @@ public class RelayPlatformsImageServlet extends HttpServlet {
       end = request.getParameter("end");
 
       /* Validate input */
-      simpledf.parse(start);
-      simpledf.parse(end);
+      try {
+        simpledf.parse(start);
+        simpledf.parse(end);
+      } catch (ParseException e)  {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+      }
 
       md5file = DigestUtils.md5Hex(graphName + "-" + start + "-" + end);
       path = gcontroller.getBaseDir() + md5file + ".png";
@@ -55,8 +60,9 @@ public class RelayPlatformsImageServlet extends HttpServlet {
       gcontroller.writeOutput(path, request, response);
 
     } catch (NullPointerException e) {
-    } catch (ParseException e) {
+      log.warn(e.toString());
     } catch (IOException e) {
+      log.warn(e.toString());
     }
   }
 }
