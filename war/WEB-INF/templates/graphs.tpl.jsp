@@ -1,3 +1,6 @@
+<jsp:useBean id="dateranges" class="org.torproject.ernie.util.DateRanges" scope="request"/>
+<%@page import="java.util.*" %>
+<%@page import="java.io.*" %>
         <h2>Tor Metrics Portal: Graphs</h2>
         <br/>
         <p>The graphs on this page visualize a small portion of the data
@@ -24,7 +27,7 @@
         <br/>
         <p>The number of relays in the Tor network can be extracted from
         the hourly published network status consensuses.</p>
-        <img src="graphs/networksize/networksize-30d.png"/>
+        <img src="networksize.png?start=<%=dateranges.getDayRange(30)[0]%>&end=<%=dateranges.getDayRange(30)[1]%>"/>
         <p>Other graphs related to <a href="consensus-graphs.html">network
         size</a> and <a href="exit-relays-graphs.html">exit relays</a> can
         be found on separate pages.</p>
@@ -94,7 +97,7 @@
         server descriptors that they send to the directory authorities.
         The following graph shows the number of relays running specific
         Tor versions.</p>
-        <img src="graphs/descriptors/versions.png"/>
+        <img src="versions.png?start=<%=dateranges.getDayRange(30)[0]%>&end=<%=dateranges.getDayRange(30)[1]%>"/>
         <br/>
         <a id="platforms"/>
         <h3>Relay platforms</h3>
@@ -103,7 +106,7 @@
         descriptors that they send to the directory authorities. The
         following graph shows the number of relays running specific
         platforms.</p>
-        <img src="graphs/descriptors/platforms.png"/>
+        <img src="platforms.png?start=<%=dateranges.getDayRange(30)[0]%>&end=<%=dateranges.getDayRange(30)[1]%>"/>
         <br/>
         <a id="bandwidth"/>
         <h3>Relay bandwidth</h3>
@@ -112,5 +115,5 @@
         to contribute in their server descriptors. The following graph
         shows the sum of advertised bandwidth of all relays in the
         network.</p>
-        <img src="graphs/descriptors/bandwidth.png"/>
+        <img src="bandwidth.png?start=<%=dateranges.getDayRange(30)[0]%>&end=<%=dateranges.getDayRange(30)[1]%>"/>
         <br/>

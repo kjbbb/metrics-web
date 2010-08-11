@@ -1,3 +1,4 @@
+<jsp:useBean id="dateranges" class="org.torproject.ernie.util.DateRanges" scope="request"/>
 <%@page import="java.util.*" %>
 <%@page import="java.io.*" %>
         <h2>Tor Metrics Portal: Graphs</h2>
@@ -12,54 +13,28 @@
               <a href="#networksize-90d">90</a>,
               <a href="#networksize-180d">180</a> days</li>
           <li><a href="#networksize-all">All data</a> up to today</li>
-<%
-    Calendar now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-    Calendar lastQuarter = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-    lastQuarter.add(Calendar.MONTH, -3);
-    Calendar lastMonth = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-    lastMonth.add(Calendar.MONTH, -1);
-    out.print("          <li>Annual graphs of\n");
-    for (int i = now.get(Calendar.YEAR); i > 2006; i--) {
-      out.print("              <a href=\"#networksize-" + i + "\">"
-          + i + "</a>,\n");
-    }
-    out.print("              <a href=\"#networksize-2006\">2006</a></li>\n");
-    out.print("          <li>Quarterly graphs of\n");
-    out.print(String.format("              <a href=\"#networksize-%1$tY-q%2$d\">"
-        + "Q%2$d %1$tY</a>,%n", now, 1 + now.get(Calendar.MONTH) / 3));
-    out.print(String.format("              <a href=\"#networksize-%1$tY-q%2$d\">"
-        + "Q%2$d %1$tY</a></li>%n", lastQuarter, 1 + lastQuarter.get(Calendar.MONTH) / 3));
-    out.print("          <li>Monthly graphs of\n");
-    out.print(String.format("              <a href=\"#networksize-%1$tY-%1$tm\">"
-        + "%1$tb %1$tY</a>,%n", now));
-    out.print(String.format("              <a href=\"#networksize-%1$tY-%1$tm\">"
-        + "%1$tb %1$tY</a></li>%n", lastMonth));
-    out.print("          <li><a href=\"csv/networksize.csv\">CSV</a> file\n"
-        + "              containing raw data</li>\n"
-        + "        </ul>\n"
-        + "        <p><a id=\"networksize-30d\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-30d.png\"/>\n"
-        + "        </p><p><a id=\"networksize-90d\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-90d.png\"/>\n"
-        + "        </p><p><a id=\"networksize-180d\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-180d.png\"/>\n"
-        + "        </p><p><a id=\"networksize-all\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-all.png\"/>\n");
-    for (int i = now.get(Calendar.YEAR); i > 2006; i--) {
-      out.print("        </p><p><a id=\"networksize-" + i + "\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-" + i + ".png\"/>\n");
-    }
-    out.print("        </p><p><a id=\"networksize-2006\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-2006.png\"/>\n");
-    out.print(String.format("        </p><p><a id=\"networksize-%1$tY-q%2$d\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-%1$tY-q%2$d.png\"/>\n",
-        now, 1 + now.get(Calendar.MONTH) / 3));
-    out.print(String.format("        </p><p><a id=\"networksize-%1$tY-q%2$d\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-%1$tY-q%2$d.png\"/>\n",
-        lastQuarter, 1 + lastQuarter.get(Calendar.MONTH) / 3));
-    out.print(String.format("        </p><p><a id=\"networksize-%1$tY-%1$tm\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-%1$tY-%1$tm.png\"/>\n", now));
-    out.print(String.format("        </p><p><a id=\"networksize-%1$tY-%1$tm\"/>\n"
-        + "          <img src=\"graphs/networksize/networksize-%1$tY-%1$tm.png\"/>\n", lastMonth));
-    out.print("        </p><br/>\n");
-%>
+          <%int[] years = dateranges.getYearsRange();%>
+          <li>Annual graphs of <%for(int i = 0; i < years.length; i++) {%>
+            <a href="#networksize-<%=years[i]%>"><%=years[i]%></a>, <%}%></li>
+        </ul>
+
+<p>Network size past 30 days.
+  <a id="networksize-30d"/></p>
+  <img src="/networksize.png?start=<%=dateranges.getDayRange(30)[0]%>&end=<%=dateranges.getDayRange(30)[1]%>"/>
+<p>Network size past 90 days.
+  <a id="networksize-90d"/></p>
+  <img src="/networksize.png?start=<%=dateranges.getDayRange(90)[0]%>&end=<%=dateranges.getDayRange(90)[1]%>"/>
+<p>Network size past 180 days.
+  <a id="networksize-180d"/></p>
+  <img src="/networksize.png?start=<%=dateranges.getDayRange(180)[0]%>&end=<%=dateranges.getDayRange(180)[1]%>"/>
+<p>Network size (All data).
+  <a id="networksize-all"/></p>
+  <img src="/networksize.png?start=<%=dateranges.getAllDataRange()[0]%>&end=<%=dateranges.getAllDataRange()[1]%>"/>
+
+<%for (int i = 0; i < years.length; i++) {%>
+<p>Network size (<%=years[i]%>)
+  <a id="networksize-<%=years[i]%>"/></p>
+  <img src="/networksize.png?start=<%=dateranges.getYearsRangeDates(
+      years[i])[0]%>&end=<%=dateranges.getYearsRangeDates(
+      years[i])[1]%>"/>
+<%}%>

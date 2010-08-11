@@ -48,43 +48,54 @@ public class DateRanges {
 
   /**
    * Get a range for days in the past, which returns a tuple
-   * like (start, yyyy-mm-dd) and (end, yyyy-mm-dd).
+   * that maps to (start, end) - (yyyy-mm-dd, yyyy-mm-dd)
    */
-  public Map<String, String> getDayRange(int days)  {
-    Map<String, String> dates = new HashMap<String, String>();
+  public String[] getDayRange(int days)  {
+    String[] dates = new String[2];
     Calendar today = Calendar.getInstance();
     today.setTimeZone(TimeZone.getTimeZone("UTC"));
     Calendar start = (Calendar)today.clone();
     start.add(Calendar.DATE, -days);
 
-    dates.put("start", simpledf.format(start.getTime()));
-    dates.put("end", simpledf.format(today.getTime()));
+    dates[0] = simpledf.format(start.getTime());
+    dates[1] = simpledf.format(today.getTime());
     return dates;
   }
 
   /**
-   * Get the years range (of current data in the database), which returns
-   * a structure that looks like (year (start, end)), or (yyyy (yyyy-mm-dd, yyyy-mm-dd)).
+   * Get the years range (of current data in the database), which returns a
+   * simple numeric array of each year.
    */
-  public Map<Integer, Map<String, String>> getYearsRange()  {
-    Map<Integer, Map<String, String>> yearsrange =
-        new HashMap<Integer, Map<String, String>>();
+  public int[] getYearsRange()  {
     int min = 0, max = 0;
+    int yearsrange[] = new int[1];
     try {
       ResultSet rsYearsRange = psYearsRange.executeQuery();
       if (rsYearsRange.next())  {
         min = rsYearsRange.getInt("min");
         max = rsYearsRange.getInt("max");
       }
-      for (int year = min; year <= max; year++) {
-        Map<String, String> dates = new HashMap<String, String>();
-        dates.put(year + "01-01",year + "12-31");
-        yearsrange.put(year, dates);
+      yearsrange = new int[max - min + 1];
+      for (int i = 0; i <= max-min; i++) {
+        yearsrange[0] = min+i;
       }
     } catch (SQLException e) {
+      yearsrange[0] = 0;
+      yearsrange[1] = 0;
       log.warn("Couldn't get results from network_size table: " + e);
     }
     return yearsrange;
+  }
+
+  /**
+   * Used in conjunction with getYearsRange, it accepts a year and will
+   * return the start and end date.
+   */
+  public String[] getYearsRangeDates(int year)  {
+    String[] dates = new String[2];
+    dates[0] = year + "-01-01";
+    dates[1] = year + "-12-31";
+    return dates;
   }
 
   /**
@@ -92,13 +103,13 @@ public class DateRanges {
    * returns a map with one row that contains the start and end dates
    * like (yyyy-mm-dd, yyyy-mm-dd).
    */
-  public Map<String, String> getAllDataRange() {
-    Map<String, String> range = new HashMap<String, String>();
+  public String[] getAllDataRange() {
+    String[] range = new String[2];
     try {
       ResultSet rsAllRange = psAllRange.executeQuery();
       if (rsAllRange.next())  {
-        range.put(rsAllRange.getString("min"),
-            rsAllRange.getString("max"));
+        range[0] = rsAllRange.getString("min");
+        range[1] = rsAllRange.getString("max");
       }
     } catch (SQLException e) {
       log.warn("Couldn't get results from network_size table: " + e);
