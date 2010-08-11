@@ -9,7 +9,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import org.apache.commons.codec.digest.DigestUtils;
 
-public class PlatformsUptimeBoxplotServlet extends HttpServlet {
+public class GuardexitBandwidthBargraphServlet extends HttpServlet {
 
   private final String rquery;
   private final String graphName;
@@ -19,13 +19,13 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
 
   static {
     ErnieProperties props = new ErnieProperties();
-    log = Logger.getLogger(PlatformsUptimeBoxplotServlet.class);
+    log = Logger.getLogger(GuardexitBandwidthBargraphServlet.class);
   }
 
-  public PlatformsUptimeBoxplotServlet()  {
-    this.graphName = "platforms-uptime-boxplot";
+  public GuardexitBandwidthBargraphServlet()  {
+    this.graphName = "guardexit-bandwidth-bargraph";
     this.gcontroller = new GraphController(graphName);
-    this.rquery = "plot_platform_uptime_boxplot('%s', '%s', '%s', limit=%s)";
+    this.rquery = "plot_bandwidth_guardexit_bargraph('%s', '%s', '%s')";
     this.simpledf = new SimpleDateFormat("yyyy-MM-dd");
     this.simpledf.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
@@ -34,30 +34,28 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
       HttpServletResponse response) throws IOException,
       ServletException {
 
-    String md5file, start = "", end = "", path, query, limit;
+    String md5file, start = "", end = "", path, query;
 
     try {
+
       start = request.getParameter("start");
       end = request.getParameter("end");
-      limit = request.getParameter("limit");
-      if (limit == null) { limit = "0"; }
 
       /* Validate input */
       try {
         simpledf.parse(start);
         simpledf.parse(end);
-        Integer.parseInt(limit);
       } catch (Exception e)  {
-        log.info("User entered invalid date or limit: " + start + " : " + end + ", " + e);
+        log.info("User entered invalid date: " + start + " : " + end + ", " + e);
         response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         return;
       }
 
       md5file = DigestUtils.md5Hex(graphName + "-" + start + "-" +
-          end + "-" + limit);
+          end);
       path = gcontroller.getBaseDir() + md5file + ".png";
 
-      query = String.format(rquery, start, end, path, limit);
+      query = String.format(rquery, start, end, path);
       gcontroller.generateGraph(query, path);
       gcontroller.writeOutput(path, request, response);
 

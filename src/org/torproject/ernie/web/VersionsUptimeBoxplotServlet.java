@@ -9,7 +9,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import org.apache.commons.codec.digest.DigestUtils;
 
-public class PlatformsUptimeBoxplotServlet extends HttpServlet {
+public class VersionsUptimeBoxplotServlet extends HttpServlet {
 
   private final String rquery;
   private final String graphName;
@@ -19,13 +19,13 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
 
   static {
     ErnieProperties props = new ErnieProperties();
-    log = Logger.getLogger(PlatformsUptimeBoxplotServlet.class);
+    log = Logger.getLogger(VersionsUptimeBoxplotServlet.class);
   }
 
-  public PlatformsUptimeBoxplotServlet()  {
-    this.graphName = "platforms-uptime-boxplot";
+  public VersionsUptimeBoxplotServlet()  {
+    this.graphName = "versions-uptime-boxplot";
     this.gcontroller = new GraphController(graphName);
-    this.rquery = "plot_platform_uptime_boxplot('%s', '%s', '%s', limit=%s)";
+    this.rquery = "plot_version_uptime_boxplot('%s', '%s', '%s', limit=%s)";
     this.simpledf = new SimpleDateFormat("yyyy-MM-dd");
     this.simpledf.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
@@ -37,6 +37,7 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
     String md5file, start = "", end = "", path, query, limit;
 
     try {
+
       start = request.getParameter("start");
       end = request.getParameter("end");
       limit = request.getParameter("limit");

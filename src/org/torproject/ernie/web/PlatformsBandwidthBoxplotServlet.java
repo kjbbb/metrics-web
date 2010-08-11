@@ -9,7 +9,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import org.apache.commons.codec.digest.DigestUtils;
 
-public class PlatformsUptimeBoxplotServlet extends HttpServlet {
+public class PlatformsBandwidthBoxplotServlet extends HttpServlet {
 
   private final String rquery;
   private final String graphName;
@@ -19,13 +19,13 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
 
   static {
     ErnieProperties props = new ErnieProperties();
-    log = Logger.getLogger(PlatformsUptimeBoxplotServlet.class);
+    log = Logger.getLogger(PlatformsBandwidthBoxplotServlet.class);
   }
 
-  public PlatformsUptimeBoxplotServlet()  {
-    this.graphName = "platforms-uptime-boxplot";
+  public PlatformsBandwidthBoxplotServlet()  {
+    this.graphName = "platforms-bandwidth-boxplot";
     this.gcontroller = new GraphController(graphName);
-    this.rquery = "plot_platform_uptime_boxplot('%s', '%s', '%s', limit=%s)";
+    this.rquery = "plot_bandwidth_platforms_boxplot('%s', '%s', '%s', limit=%s)";
     this.simpledf = new SimpleDateFormat("yyyy-MM-dd");
     this.simpledf.setTimeZone(TimeZone.getTimeZone("UTC"));
   }

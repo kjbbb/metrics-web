@@ -68,7 +68,55 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>PlatformsUptimeBoxplotServlet</servlet-name>
-    <url-pattern>/platform-uptime-boxplot.png</url-pattern>
+    <url-pattern>/platforms-uptime-boxplot.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>VersionsUptimeBoxplotServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.VersionsUptimeBoxplotServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VersionsUptimeBoxplotServlet</servlet-name>
+    <url-pattern>/versions-uptime-boxplot.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>PlatformsBandwidthBoxplotServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.PlatformsBandwidthBoxplotServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PlatformsBandwidthBoxplotServlet</servlet-name>
+    <url-pattern>/platforms-bandwidth-boxplot.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>VersionsBandwidthBoxplotServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.VersionsBandwidthBoxplotServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VersionsBandwidthBoxplotServlet</servlet-name>
+    <url-pattern>/versions-bandwidth-boxplot.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>VersionsBandwidthBargraphServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.VersionsBandwidthBargraphServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VersionsBandwidthBargraphServlet</servlet-name>
+    <url-pattern>/versions-bandwidth-bargraph.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>PlatformsBandwidthBargraphServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.PlatformsBandwidthBargraphServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PlatformsBandwidthBargraphServlet</servlet-name>
+    <url-pattern>/platforms-bandwidth-bargraph.png</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>GuardexitBandwidthBargraphServlet</servlet-name>
+    <servlet-class>org.torproject.ernie.web.GuardexitBandwidthBargraphServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GuardexitBandwidthBargraphServlet</servlet-name>
+    <url-pattern>/guardexit-bandwidth-bargraph.png</url-pattern>
   </servlet-mapping>
   <servlet>
     <servlet-name>GetTorImageServlet</servlet-name>
