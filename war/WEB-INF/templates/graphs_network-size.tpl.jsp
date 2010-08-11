@@ -38,3 +38,4 @@
       years[i])[0]%>&end=<%=dateranges.getYearsRangeDates(
       years[i])[1]%>"/>
 <%}%>
+<%dateranges.closeConnection();%>

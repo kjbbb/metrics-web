@@ -117,3 +117,4 @@
         network.</p>
         <img src="bandwidth.png?start=<%=dateranges.getDayRange(30)[0]%>&end=<%=dateranges.getDayRange(30)[1]%>"/>
         <br/>
+<%dateranges.closeConnection();%>
