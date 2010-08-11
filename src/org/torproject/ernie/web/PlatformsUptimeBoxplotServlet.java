@@ -62,11 +62,7 @@ public class PlatformsUptimeBoxplotServlet extends HttpServlet {
 
       query = String.format(rquery, start, end, path, limit);
 
-      File f = new File(path);
-      if (!f.exists()) {
-        gcontroller.generateGraph(query);
-      }
-
+      gcontroller.generateGraph(query, path);
       gcontroller.writeOutput(path, request, response);
 
     } catch (NullPointerException e)  {

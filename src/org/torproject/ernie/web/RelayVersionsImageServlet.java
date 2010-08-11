@@ -51,12 +51,7 @@ public class RelayVersionsImageServlet extends HttpServlet {
       path = gcontroller.getBaseDir() + md5file + ".png";
 
       query = String.format(rquery, start, end, path);
-
-      File f = new File(path);
-      if (!f.exists()) {
-        gcontroller.generateGraph(query);
-      }
-
+      gcontroller.generateGraph(query, path);
       gcontroller.writeOutput(path, request, response);
 
     } catch (NullPointerException e) {

@@ -64,11 +64,7 @@ public class TorperfImageServlet extends HttpServlet {
 
       query = String.format(rquery, start, end, path, source, size);
 
-      File f = new File(path);
-      if (!f.exists()) {
-        gcontroller.generateGraph(query);
-      }
-
+      gcontroller.generateGraph(query, path);
       gcontroller.writeOutput(path, request, response);
 
     } catch (NullPointerException e) {

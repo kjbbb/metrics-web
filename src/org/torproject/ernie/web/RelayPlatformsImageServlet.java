@@ -52,11 +52,7 @@ public class RelayPlatformsImageServlet extends HttpServlet {
 
       query = String.format(rquery, start, end, path);
 
-      File f = new File(path);
-      if (!f.exists()) {
-        gcontroller.generateGraph(query);
-      }
-
+      gcontroller.generateGraph(query, path);
       gcontroller.writeOutput(path, request, response);
 
     } catch (NullPointerException e) {

@@ -15,7 +15,7 @@ public class GetTorImageServlet extends HttpServlet {
   private final String rquery;
   private final String graphName;
   private final GraphController gcontroller;
-  private final Constants c;
+  private SimpleDateFormat simpledf;
   private static final SortedSet<String> validBundles;
 
   static {
@@ -29,7 +29,8 @@ public class GetTorImageServlet extends HttpServlet {
     this.graphName = "gettor";
     this.gcontroller = new GraphController(graphName);
     this.rquery = "plot_gettor_line('%s', '%s', '%s', '%s')";
-    this.c = new Constants();
+    this.simpledf = new SimpleDateFormat("yyyy-MM-dd");
+    this.simpledf.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   public void doGet(HttpServletRequest request,
@@ -63,12 +64,7 @@ public class GetTorImageServlet extends HttpServlet {
       path = gcontroller.getBaseDir() + md5file + ".png";
 
       query = String.format(rquery, start, end, path, bundle);
-
-      File f = new File(path);
-      if (!f.exists()) {
-        gcontroller.generateGraph(query);
-      }
-
+      gcontroller.generateGraph(query, path);
       gcontroller.writeOutput(path, request, response);
 
     } catch (NullPointerException e)  {

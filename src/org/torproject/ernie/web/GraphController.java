@@ -91,13 +91,17 @@ public class GraphController {
     }
   }
 
-  public void generateGraph(String rquery)  {
-    /* Send request to Rserve. */
+  public void generateGraph(String rquery, String path)  {
     try {
-      RConnection rc = new RConnection(rserveHost, rservePort);
-      rc.eval(rquery);
-      rc.close();
+      File f = new File(path);
+      if (!f.exists())  {
+        RConnection rc = new RConnection(rserveHost, rservePort);
+        rc.eval(rquery);
+        rc.close();
+      }
     } catch (Exception e) {
+      log.warn("Internal Rserve error. Couldn't generate graph: " +
+          e.toString());
     }
   }
 
