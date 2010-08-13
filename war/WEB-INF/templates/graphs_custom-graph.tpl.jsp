@@ -24,7 +24,7 @@ for tracking a more specific part of the Tor network.</p>
           value="<%=(request.getParameter("graph") != null &&
                      request.getParameter("graph").equals("networksize") &&
                      request.getParameter("end") != null) ?
-                        request.getParameter("start") : ""%>"/>
+                        request.getParameter("end") : ""%>"/>
       <input class="submit" type="submit"/>
     </div>
   </form>
