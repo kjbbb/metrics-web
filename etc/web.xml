@@ -117,6 +117,16 @@
     <servlet-name>Status</servlet-name>
     <url-pattern>/status.html</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <servlet-name>NetworkStatus</servlet-name>
+    <servlet-class>
+      org.torproject.ernie.web.NetworkStatusServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>NetworkStatus</servlet-name>
+    <url-pattern>/networkstatus.html</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>Relay</servlet-name>
