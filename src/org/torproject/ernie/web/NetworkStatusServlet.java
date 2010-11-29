@@ -9,6 +9,7 @@ import java.util.*;
 public class NetworkStatusServlet extends HttpServlet {
 
   private Connection conn = null;
+  private String connectionURL;
 
   public void init() {
 
@@ -22,15 +23,9 @@ public class NetworkStatusServlet extends HttpServlet {
     }
 
     /* Read JDBC URL from deployment descriptor. */
-    String connectionURL = getServletContext().
+    connectionURL = getServletContext().
         getInitParameter("jdbcUrl");
 
-    /* Try to connect to database. */
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-    } catch (SQLException e) {
-      conn = null;
-    }
   }
 
   public void doGet(HttpServletRequest request,
@@ -39,6 +34,8 @@ public class NetworkStatusServlet extends HttpServlet {
     Set<Map<String, Object>> status = new HashSet<Map<String, Object>>();
 
     try {
+      conn = DriverManager.getConnection(connectionURL);
+
       Statement statement = conn.createStatement();
 
       String query = "SELECT * FROM statusentry "
@@ -51,29 +48,34 @@ public class NetworkStatusServlet extends HttpServlet {
         row.put("validafter", rs.getTimestamp(1));
         row.put("nickname", rs.getString(2));
         row.put("fingerprint", rs.getString(3));
-        row.put("published", rs.getTimestamp(4));
-        row.put("address", rs.getString(5));
-        row.put("orport", rs.getInt(6));
-        row.put("dirport", rs.getInt(7));
-        row.put("isauthority", rs.getBoolean(8));
-        row.put("isbadexit", rs.getBoolean(9));
-        row.put("isbaddirectory", rs.getBoolean(10));
-        row.put("isexit", rs.getBoolean(11));
-        row.put("isfast", rs.getBoolean(12));
-        row.put("isguard", rs.getBoolean(13));
-        row.put("ishsdir", rs.getBoolean(14));
-        row.put("isnamed", rs.getBoolean(15));
-        row.put("isstable", rs.getBoolean(16));
-        row.put("isrunning", rs.getBoolean(17));
-        row.put("isvalid", rs.getBoolean(18));
-        row.put("isv2dir", rs.getBoolean(19));
-        row.put("isv3dir", rs.getBoolean(20));
-        row.put("version", rs.getString(21));
-        row.put("bandwidth", rs.getBigDecimal(22));
-        row.put("ports", rs.getString(23));
-        row.put("rawdesc", rs.getBytes(24));
+        row.put("descriptor", rs.getString(4));
+        row.put("published", rs.getTimestamp(5));
+        row.put("address", rs.getString(6));
+        row.put("orport", rs.getInt(7));
+        row.put("dirport", rs.getInt(8));
+        row.put("isauthority", rs.getBoolean(9));
+        row.put("isbadexit", rs.getBoolean(10));
+        row.put("isbaddirectory", rs.getBoolean(11));
+        row.put("isexit", rs.getBoolean(12));
+        row.put("isfast", rs.getBoolean(13));
+        row.put("isguard", rs.getBoolean(14));
+        row.put("ishsdir", rs.getBoolean(15));
+        row.put("isnamed", rs.getBoolean(16));
+        row.put("isstable", rs.getBoolean(17));
+        row.put("isrunning", rs.getBoolean(18));
+        row.put("isunnamed", rs.getBoolean(19));
+        row.put("isvalid", rs.getBoolean(20));
+        row.put("isv2dir", rs.getBoolean(21));
+        row.put("isv3dir", rs.getBoolean(22));
+        row.put("version", rs.getString(23));
+        row.put("bandwidth", rs.getBigDecimal(24));
+        row.put("ports", rs.getString(25));
+        row.put("rawdesc", rs.getBytes(26));
         status.add(row);
+
+        conn.close();
       }
+      request.setAttribute("status", status);
     } catch (SQLException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       return;
@@ -84,4 +86,3 @@ public class NetworkStatusServlet extends HttpServlet {
         response);
   }
 }
-
