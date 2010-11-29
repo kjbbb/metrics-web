@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
@@ -10,7 +11,27 @@
   <div class="center">
     <%@ include file="banner.jsp"%>
     <div class="main-column">
-        <h2>Tor Metrics Portal: Network Status</h2>
+      <h2>Tor Metrics Portal: Network Status</h2>
+      <table>
+        <tr>
+          <th>nickname</th>
+          <th>bandwidth</th>
+          <th>orport</th>
+          <th>dirport</th>
+          <th>isbadexit</th>
+          <th>uptime</th>
+        </tr>
+      <c:forEach var="row" items="${status}">
+        <tr>
+          <td>${row['nickname']}</td>
+          <td>${row['bandwidth']}</td>
+          <td>${row['orport']}</td>
+          <td>${row['dirport']}</td>
+          <td>${row['isbadexit']}</td>
+          <td>${row['uptime'] div 60 div 60 div 24}</td>
+        </tr>
+      </c:forEach>
+      </table>
     </div>
   </div>
   <div class="bottom" id="bottom">
