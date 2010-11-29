@@ -38,8 +38,14 @@ public class NetworkStatusServlet extends HttpServlet {
 
       Statement statement = conn.createStatement();
 
-      String query = "SELECT * FROM statusentry "
-          + "WHERE validafter = (SELECT MAX(validafter) FROM statusentry)";
+      String query = "SELECT s.*, "
+          + "d.uptime AS uptime, d.platform AS platform "
+          + "FROM statusentry s "
+          + "JOIN descriptor d "
+          + "ON d.descriptor=s.descriptor "
+          + "WHERE s.validafter = "
+              + "(SELECT MAX(validafter) FROM statusentry)";
+
 
       ResultSet rs = statement.executeQuery(query);
 
@@ -71,6 +77,8 @@ public class NetworkStatusServlet extends HttpServlet {
         row.put("bandwidth", rs.getBigDecimal(24));
         row.put("ports", rs.getString(25));
         row.put("rawdesc", rs.getBytes(26));
+        row.put("uptime", rs.getBigDecimal(27));
+        row.put("platform", rs.getString(27));
         status.add(row);
 
         conn.close();
