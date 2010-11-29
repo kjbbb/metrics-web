@@ -80,9 +80,9 @@ public class NetworkStatusServlet extends HttpServlet {
         row.put("uptime", rs.getBigDecimal(27));
         row.put("platform", rs.getString(27));
         status.add(row);
-
-        conn.close();
       }
+
+      conn.close();
       request.setAttribute("status", status);
     } catch (SQLException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
