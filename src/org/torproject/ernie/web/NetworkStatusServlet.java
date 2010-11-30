@@ -31,21 +31,41 @@ public class NetworkStatusServlet extends HttpServlet {
   public void doGet(HttpServletRequest request,
       HttpServletResponse response) throws IOException, ServletException {
 
-    Set<Map<String, Object>> status = new HashSet<Map<String, Object>>();
+    List<Map<String, Object>> status = new ArrayList<Map<String, Object>>();
+    String sort, order;
+
+    Set<String> validSort = new HashSet<String>(
+        Arrays.asList(("nickname,bandwidth,orport,dirport,isbadexit,"
+            + "uptime").split(",")));
+
+    Set<String> validOrder = new HashSet<String>(
+        Arrays.asList(("desc,asc").split(",")));
+
+    try {
+      sort = request.getParameter("sort").toLowerCase();
+      order = request.getParameter("order").toLowerCase();
+    } catch (Exception e) {
+      sort = "nickname";
+      order = "asc";
+    }
+
+    if (!validSort.contains(sort))    { sort = "nickname"; }
+    if (!validOrder.contains(order))  { order = "desc"; }
 
     try {
       conn = DriverManager.getConnection(connectionURL);
 
       Statement statement = conn.createStatement();
 
+      if (sort.equals("uptime"))  { sort = "d.uptime"; }
       String query = "SELECT s.*, "
           + "d.uptime AS uptime, d.platform AS platform "
           + "FROM statusentry s "
           + "JOIN descriptor d "
           + "ON d.descriptor=s.descriptor "
           + "WHERE s.validafter = "
-              + "(SELECT MAX(validafter) FROM statusentry)";
-
+              + "(SELECT MAX(validafter) FROM statusentry) "
+          + "ORDER BY " + sort + " " + order;
 
       ResultSet rs = statement.executeQuery(query);
 
@@ -84,6 +104,9 @@ public class NetworkStatusServlet extends HttpServlet {
 
       conn.close();
       request.setAttribute("status", status);
+      request.setAttribute("sort", sort);
+      request.setAttribute("order", order);
+
     } catch (SQLException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       return;
