@@ -31,6 +31,33 @@ public class RouterDetailServlet extends HttpServlet {
   public void doGet(HttpServletRequest request,
       HttpServletResponse response) throws IOException, ServletException {
 
+    String fingerprint;
+    String validafter;
+
+    try {
+      fingerprint = request.getParameter("r");
+      validafter = request.getParameter("va");
+    } catch (Exception e) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+
+    String query = "SELECT * FROM statusentry "
+        + "WHERE fingerprint = ? "
+        + "AND validafter = ? "
+        + "LIMIT 1";
+
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      PreparedStatement ps = conn.prepareStatement(query);
+      ps.setString(1, fingerprint);
+      ps.setString(2, validafter);
+      conn.close();
+    } catch (SQLException e)  {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      return;
+    }
+
     /* Forward the request to the JSP that does all the hard work. */
     request.getRequestDispatcher("WEB-INF/routerdetail.jsp").forward(request,
         response);
