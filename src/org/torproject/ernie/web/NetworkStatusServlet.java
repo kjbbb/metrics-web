@@ -31,13 +31,11 @@ public class NetworkStatusServlet extends HttpServlet {
   public void doGet(HttpServletRequest request,
       HttpServletResponse response) throws IOException, ServletException {
 
-    List<Map<String, Object>> status = new ArrayList<Map<String, Object>>();
     String sort, order;
-
+    List<Map<String, Object>> status = new ArrayList<Map<String, Object>>();
     Set<String> validSort = new HashSet<String>(
         Arrays.asList(("nickname,bandwidth,orport,dirport,isbadexit,"
             + "uptime").split(",")));
-
     Set<String> validOrder = new HashSet<String>(
         Arrays.asList(("desc,asc").split(",")));
 
@@ -54,7 +52,6 @@ public class NetworkStatusServlet extends HttpServlet {
 
     try {
       conn = DriverManager.getConnection(connectionURL);
-
       Statement statement = conn.createStatement();
 
       if (sort.equals("uptime"))  { sort = "d.uptime"; }
@@ -98,14 +95,13 @@ public class NetworkStatusServlet extends HttpServlet {
         row.put("ports", rs.getString(25));
         row.put("rawdesc", rs.getBytes(26));
         row.put("uptime", rs.getBigDecimal(27));
-        row.put("platform", rs.getString(27));
+        row.put("platform", rs.getString(28));
         status.add(row);
       }
 
       conn.close();
 
       request.setAttribute("status", status);
-
       if (sort == "d.uptime") { sort = "uptime"; }
       request.setAttribute("sort", sort);
       request.setAttribute("order", (order.equals("desc")) ? "asc" : "desc");
