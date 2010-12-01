@@ -103,9 +103,12 @@ public class NetworkStatusServlet extends HttpServlet {
       }
 
       conn.close();
+
       request.setAttribute("status", status);
+
+      if (sort == "d.uptime") { sort = "uptime"; }
       request.setAttribute("sort", sort);
-      request.setAttribute("order", order);
+      request.setAttribute("order", (order.equals("desc")) ? "asc" : "desc");
 
     } catch (SQLException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

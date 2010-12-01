@@ -14,12 +14,12 @@
       <h2>Tor Metrics Portal: Network Status</h2>
       <table>
         <tr>
-          <th>nickname</th>
-          <th>bandwidth</th>
-          <th>orport</th>
-          <th>dirport</th>
-          <th>isbadexit</th>
-          <th>uptime</th>
+          <th><a href="/networkstatus.html?sort=nickname&order=${sort=='nickname'?order:'desc'}">nickname</a></th>
+          <th><a href="/networkstatus.html?sort=bandwidth&order=${sort=='bandwidth'?order:'desc'}">bandwidth</a></th>
+          <th><a href="/networkstatus.html?sort=orport&order=${sort=='orport'?order:'desc'}">orport</a></th>
+          <th><a href="/networkstatus.html?sort=dirport&order=${sort=='dirport'?order:'desc'}">dirport</a></th>
+          <th><a href="/networkstatus.html?sort=isbadexit&order=${sort=='isbadexit'?order:'desc'}">isbadexit</a></th>
+          <th><a href="/networkstatus.html?sort=uptime&order=${sort=='uptime'?order:'desc'}">uptime</a></th>
         </tr>
       <c:forEach var="row" items="${status}">
         <tr>
