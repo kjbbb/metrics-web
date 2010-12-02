@@ -1,30 +1,41 @@
 package org.torproject.ernie.web;
 
+import java.io.*;
+import java.util.*;
+import java.sql.*;
+import java.util.logging.*;
+import java.text.*;
+
+import javax.naming.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.*;
-import java.sql.*;
-import java.util.*;
+import javax.sql.*;
 
 public class NetworkStatusServlet extends HttpServlet {
 
-  private Connection conn = null;
-  private String connectionURL;
+  private SimpleDateFormat dayFormat =
+      new SimpleDateFormat("yyyy-MM-dd");
+
+  private DataSource ds;
+
+  private Logger logger;
 
   public void init() {
 
-    /* Try to load the database driver. */
-    try {
-      Class.forName("org.postgresql.Driver");
-    } catch (ClassNotFoundException e) {
-      /* Don't initialize conn and always reply to all requests with
-       * "500 internal server error". */
-      return;
-    }
+    /* Initialize logger. */
+    this.logger = Logger.getLogger(NetworkStatusServlet.class.toString());
 
-    /* Read JDBC URL from deployment descriptor. */
-    connectionURL = getServletContext().
-        getInitParameter("jdbcUrl");
+    /* Initialize date format parser. */
+    this.dayFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+    /* Look up data source. */
+    try {
+      Context cxt = new InitialContext();
+      this.ds = (DataSource) cxt.lookup("java:comp/env/jdbc/tordir");
+      this.logger.info("Successfully looked up data source.");
+    } catch (NamingException e) {
+      this.logger.log(Level.WARNING, "Could not look up data source", e);
+    }
 
   }
 
@@ -32,13 +43,18 @@ public class NetworkStatusServlet extends HttpServlet {
       HttpServletResponse response) throws IOException, ServletException {
 
     String sort, order;
-    List<Map<String, Object>> status = new ArrayList<Map<String, Object>>();
+
+    List<Map<String, Object>> status =
+        new ArrayList<Map<String, Object>>();
+
     Set<String> validSort = new HashSet<String>(
         Arrays.asList(("nickname,bandwidth,orport,dirport,isbadexit,"
             + "uptime").split(",")));
+
     Set<String> validOrder = new HashSet<String>(
         Arrays.asList(("desc,asc").split(",")));
 
+    /* Initialize sort and order parameters from GET */
     try {
       sort = request.getParameter("sort").toLowerCase();
       order = request.getParameter("order").toLowerCase();
@@ -47,14 +63,16 @@ public class NetworkStatusServlet extends HttpServlet {
       order = "asc";
     }
 
+    /* Check and set default parameters in case of bad user data. */
     if (!validSort.contains(sort))    { sort = "nickname"; }
     if (!validOrder.contains(order))  { order = "desc"; }
 
+    /* Connect to the database and retrieve data set */
     try {
-      conn = DriverManager.getConnection(connectionURL);
+      Connection conn = this.ds.getConnection();
       Statement statement = conn.createStatement();
 
-      if (sort.equals("uptime"))  { sort = "d.uptime"; }
+      sort = ((sort == "uptime" || sort == "platform") ? "d." : "s.") + sort;
       String query = "SELECT s.*, "
           + "d.uptime AS uptime, d.platform AS platform "
           + "FROM statusentry s "
@@ -102,12 +120,12 @@ public class NetworkStatusServlet extends HttpServlet {
       conn.close();
 
       request.setAttribute("status", status);
-      if (sort == "d.uptime") { sort = "uptime"; }
       request.setAttribute("sort", sort);
       request.setAttribute("order", (order.equals("desc")) ? "asc" : "desc");
 
     } catch (SQLException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      this.logger.log(Level.WARNING, "Database error", e);
       return;
     }
 
