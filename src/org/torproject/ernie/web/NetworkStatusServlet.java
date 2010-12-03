@@ -72,7 +72,8 @@ public class NetworkStatusServlet extends HttpServlet {
       Connection conn = this.ds.getConnection();
       Statement statement = conn.createStatement();
 
-      sort = ((sort == "uptime" || sort == "platform") ? "d." : "s.") + sort;
+      String dbsort = ((sort.equals("uptime") || sort.equals("platform"))
+          ? "d." : "s.") + sort;
       String query = "SELECT s.*, "
           + "d.uptime AS uptime, d.platform AS platform "
           + "FROM statusentry s "
@@ -80,7 +81,7 @@ public class NetworkStatusServlet extends HttpServlet {
           + "ON d.descriptor=s.descriptor "
           + "WHERE s.validafter = "
               + "(SELECT MAX(validafter) FROM statusentry) "
-          + "ORDER BY " + sort + " " + order;
+          + "ORDER BY " + dbsort + " " + order;
 
       ResultSet rs = statement.executeQuery(query);
 
@@ -118,7 +119,6 @@ public class NetworkStatusServlet extends HttpServlet {
       }
 
       conn.close();
-
       request.setAttribute("status", status);
       request.setAttribute("sort", sort);
       request.setAttribute("order", (order.equals("desc")) ? "asc" : "desc");
