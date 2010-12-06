@@ -24,9 +24,6 @@
          <td>fingerprint</td><td>${fingerprint}</td>
         </tr>
         <tr>
-         <td>descriptor</td><td>${descriptor}</td>
-        </tr>
-        <tr>
          <td>published</td><td>${published}</td>
         </tr>
         <tr>
