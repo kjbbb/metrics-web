@@ -21,6 +21,9 @@
          <td>nickname</td><td>${nickname}</td>
         </tr>
         <tr>
+         <td>bandwidth</td><td>${bandwidth * 0.0009765625} kBps</td>
+        </tr>
+        <tr>
          <td>fingerprint</td><td>${fingerprint}</td>
         </tr>
         <tr>
@@ -28,6 +31,9 @@
         </tr>
         <tr>
          <td>address</td><td>${address}</td>
+        </tr>
+        <tr>
+         <td>uptime</td><td>${uptime}</td>
         </tr>
         <tr>
          <td>orport</td><td>${orport}</td>
@@ -81,13 +87,7 @@
          <td>version</td><td>${version}</td>
         </tr>
         <tr>
-         <td>bandwidth</td><td>${bandwidth}</td>
-        </tr>
-        <tr>
          <td>ports</td><td>${ports}</td>
-        </tr>
-        <tr>
-         <td>uptime</td><td>${uptime}</td>
         </tr>
         <tr>
          <td>platform</td><td>${platform}</td>

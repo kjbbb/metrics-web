@@ -13,9 +13,6 @@ import javax.sql.*;
 
 public class NetworkStatusServlet extends HttpServlet {
 
-  private SimpleDateFormat dayFormat =
-      new SimpleDateFormat("yyyy-MM-dd");
-
   private DataSource ds;
 
   private Logger logger;
@@ -25,9 +22,6 @@ public class NetworkStatusServlet extends HttpServlet {
     /* Initialize logger. */
     this.logger = Logger.getLogger(NetworkStatusServlet.class.toString());
 
-    /* Initialize date format parser. */
-    this.dayFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
     /* Look up data source. */
     try {
       Context cxt = new InitialContext();
@@ -36,7 +30,6 @@ public class NetworkStatusServlet extends HttpServlet {
     } catch (NamingException e) {
       this.logger.log(Level.WARNING, "Could not look up data source", e);
     }
-
   }
 
   public void doGet(HttpServletRequest request,
@@ -113,7 +106,8 @@ public class NetworkStatusServlet extends HttpServlet {
         row.put("bandwidth", rs.getBigDecimal(24));
         row.put("ports", rs.getString(25));
         row.put("rawdesc", rs.getBytes(26));
-        row.put("uptime", rs.getBigDecimal(27));
+        row.put("uptime", TimeInterval.format(
+            rs.getBigDecimal(27).intValue()));
         row.put("platform", rs.getString(28));
         row.put("validafterts", rs.getTimestamp(1).getTime());
 

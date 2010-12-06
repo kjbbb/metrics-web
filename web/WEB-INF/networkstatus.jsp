@@ -28,7 +28,7 @@
           <td>${row['orport']}</td>
           <td>${row['dirport']}</td>
           <td>${row['isbadexit']}</td>
-          <td>${row['uptime'] div 60 div 60 div 24}</td>
+          <td>${row['uptime']}</td>
         </tr>
       </c:forEach>
       </table>

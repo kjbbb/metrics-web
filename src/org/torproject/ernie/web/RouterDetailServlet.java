@@ -89,7 +89,8 @@ public class RouterDetailServlet extends HttpServlet {
         request.setAttribute("version", rs.getString("version"));
         request.setAttribute("bandwidth", rs.getBigDecimal("bandwidth"));
         request.setAttribute("ports", rs.getString("ports"));
-        request.setAttribute("uptime", rs.getBigDecimal("uptime"));
+        request.setAttribute("uptime", TimeInterval.format(
+            rs.getBigDecimal("uptime").intValue()));
         request.setAttribute("platform", rs.getString("platform"));
       }
       conn.close();
