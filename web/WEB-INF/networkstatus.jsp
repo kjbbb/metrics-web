@@ -23,7 +23,7 @@
         </tr>
       <c:forEach var="row" items="${status}">
         <tr>
-          <td>${row['nickname']}</td>
+          <td><a href="/routerdetail.html?fingerprint=${row['fingerprint']}&validafter=${row['validafterts']}">${row['nickname']}</a></td>
           <td>${row['bandwidth']}</td>
           <td>${row['orport']}</td>
           <td>${row['dirport']}</td>
