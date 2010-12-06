@@ -92,6 +92,12 @@
         <tr>
          <td>platform</td><td>${platform}</td>
         </tr>
+        <tr>
+         <td>onion-key</td><td>${onion_key}</td>
+        </tr>
+        <tr>
+         <td>signing-key</td><td>${signing_key}</td>
+        </tr>
       </table>
     </div>
   </div>

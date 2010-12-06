@@ -13,7 +13,6 @@ import javax.sql.*;
 
 public class RouterDetailServlet extends HttpServlet {
 
-
   private DataSource ds;
 
   private Logger logger;
@@ -49,7 +48,7 @@ public class RouterDetailServlet extends HttpServlet {
       return;
     }
 
-    String query = "SELECT s.*, d.uptime, d.platform "
+    String query = "SELECT s.*, d.uptime, d.platform, d.rawdesc as rawdescd "
         + "FROM statusentry s "
         + "JOIN descriptor d "
         + "ON s.descriptor = d.descriptor "
@@ -92,6 +91,30 @@ public class RouterDetailServlet extends HttpServlet {
         request.setAttribute("uptime", TimeInterval.format(
             rs.getBigDecimal("uptime").intValue()));
         request.setAttribute("platform", rs.getString("platform"));
+
+        //Find onion key and signing key
+        byte[] rawdesc = rs.getBytes("rawdescd");
+        String rawdesc_str = new String(rawdesc, "UTF-8");
+        String[] lines = rawdesc_str.split("\n");
+        String onion_key = "";
+        String signing_key = "";
+        int line = 0;
+        for (String t : lines)  {
+          if (t.startsWith("onion-key"))  {
+            //We are assuming the key is there and is 5 lines long
+            for (int i = line+1; i < line+6; i++)  {
+              onion_key += lines[i] + "<br/>";
+            }
+          }
+          if (t.startsWith("signing-key"))  {
+            for (int i = line+1; i < line+6; i++)  {
+              signing_key += lines[i] + "<br/>";
+            }
+          }
+          line++;
+        }
+        request.setAttribute("onion_key", onion_key);
+        request.setAttribute("signing_key", signing_key);
       }
       conn.close();
 
