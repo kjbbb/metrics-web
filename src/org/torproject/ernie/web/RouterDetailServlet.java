@@ -96,7 +96,7 @@ public class RouterDetailServlet extends HttpServlet {
 
     } catch (SQLException e)  {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      this.logger.log(Level.WARNING, "Error ", e);
+      this.logger.log(Level.WARNING, "Database error", e);
       return;
     }
 
