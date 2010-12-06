@@ -115,6 +115,8 @@ public class NetworkStatusServlet extends HttpServlet {
         row.put("rawdesc", rs.getBytes(26));
         row.put("uptime", rs.getBigDecimal(27));
         row.put("platform", rs.getString(28));
+        row.put("validafterts", rs.getTimestamp(1).getTime());
+
         status.add(row);
       }
 
