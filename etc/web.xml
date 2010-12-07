@@ -215,6 +215,10 @@
     <servlet-name>GraphImage</servlet-name>
     <url-pattern>/torperf.png</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>GraphImage</servlet-name>
+    <url-pattern>/routerdetail.png</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>Csv</servlet-name>
