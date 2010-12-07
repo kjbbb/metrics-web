@@ -99,6 +99,10 @@
          <td>signing-key</td><td>${signing_key}</td>
         </tr>
       </table>
+      <img src="routerdetail.png?fingerprint=${fingerprint}"
+           width="576"
+           height="360"
+           alt="Router detail bandwidth graph for ${fingerprint}"/>
     </div>
   </div>
   <div class="bottom" id="bottom">
