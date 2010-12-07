@@ -101,14 +101,33 @@ public class RouterDetailServlet extends HttpServlet {
         int line = 0;
         for (String t : lines)  {
           if (t.startsWith("onion-key"))  {
-            //We are assuming the key is there and is 5 lines long
-            for (int i = line+1; i < line+6; i++)  {
-              onion_key += lines[i] + "<br/>";
+            int start = 0, end = 0;
+            if (lines[line+1].startsWith("-----BEGIN")) {
+              start = line + 1;
+              for (int i = line + 1; i < lines.length; i++) {
+                if (lines[i].startsWith("-----END"))  {
+                  end = i + 1;
+                  break;
+                }
+              }
+              for (int i = start; i < end; i++ )  {
+                onion_key += lines[i] + "<br/>";
+              }
             }
           }
           if (t.startsWith("signing-key"))  {
-            for (int i = line+1; i < line+6; i++)  {
-              signing_key += lines[i] + "<br/>";
+            int start = 0, end = 0;
+            if (lines[line+1].startsWith("-----BEGIN")) {
+              start = line + 1;
+              for (int i = line + 1; i < lines.length; i++) {
+                if (lines[i].startsWith("-----END"))  {
+                  end = i + 1;
+                  break;
+                }
+              }
+              for (int i = start; i < end; i++ )  {
+                signing_key += lines[i] + "<br/>";
+              }
             }
           }
           line++;
