@@ -2,6 +2,7 @@ package org.torproject.ernie.web;
 
 import java.text.*;
 import java.util.*;
+import java.util.regex.*;
 
 /**
  * Checks request parameters passed to graph-generating servlets.
@@ -54,6 +55,8 @@ public class GraphParameterChecker {
     this.availableGraphs.put("gettor", "start,end,bundle,filename");
     this.availableGraphs.put("torperf",
          "start,end,source,filesize,filename");
+    this.availableGraphs.put("routerdetail",
+         "start,end,fingerprint,filename");
 
     this.knownParameterValues = new HashMap<String, String>();
     this.knownParameterValues.put("flag",
@@ -63,6 +66,7 @@ public class GraphParameterChecker {
     this.knownParameterValues.put("bundle", "all,en,zh_CN,fa");
     this.knownParameterValues.put("source", "siv,moria,torperf");
     this.knownParameterValues.put("filesize", "50kb,1mb,5mb");
+    this.knownParameterValues.put("fingerprint", "\b[0-9a-f]{5,40}\b");
   }
 
   /**
@@ -237,6 +241,22 @@ public class GraphParameterChecker {
         filesizeParameter = new String[] { "50kb" };
       }
       recognizedGraphParameters.put("filesize", filesizeParameter);
+    }
+
+    /* Parse fingerprint field for the torstatus graph. Match it against
+     * a hexadecimal regular expression and make sure it is 40 characters
+     * long. */
+    if (supportedGraphParameters.contains("fingerprint")) {
+      String[] fingerprint = (String[])requestParameters.get("fingerprint");
+      if (fingerprint != null) {
+        if (!Pattern.matches(this.knownParameterValues.get("fingerprint"),
+            fingerprint[0]) || fingerprint[0].length() != 40) {
+          return null;
+        }
+      } else {
+        return null;
+      }
+      recognizedGraphParameters.put("fingerprint", fingerprint);
     }
 
     /* We now have a map with all required graph parameters. Return it. */
