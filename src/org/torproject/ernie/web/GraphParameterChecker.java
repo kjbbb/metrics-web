@@ -66,7 +66,7 @@ public class GraphParameterChecker {
     this.knownParameterValues.put("bundle", "all,en,zh_CN,fa");
     this.knownParameterValues.put("source", "siv,moria,torperf");
     this.knownParameterValues.put("filesize", "50kb,1mb,5mb");
-    this.knownParameterValues.put("fingerprint", "\b[0-9a-f]{5,40}\b");
+    this.knownParameterValues.put("fingerprint", "[0-9a-f]{40}");
   }
 
   /**
@@ -256,6 +256,18 @@ public class GraphParameterChecker {
       } else {
         return null;
       }
+
+      /* Set "mandatory" start and end parameters to this hour so it stays up to
+       * date (the start and end parameters aren't needed for this graph).
+       * Round the timestamp to the lowest hour */
+      long msDay = 1000 * 60 * 60;
+      long now = System.currentTimeMillis();
+      long nearestHour = now - (now % msDay);
+
+      String startParameter[] = { Long.toString(nearestHour) };
+      String endParameter[] = { "" };
+      recognizedGraphParameters.put("start", startParameter);
+      recognizedGraphParameters.put("end", endParameter);
       recognizedGraphParameters.put("fingerprint", fingerprint);
     }
 
