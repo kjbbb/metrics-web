@@ -134,6 +134,9 @@ public class RouterDetailServlet extends HttpServlet {
         }
         request.setAttribute("onion_key", onion_key);
         request.setAttribute("signing_key", signing_key);
+      } else {
+        /* There were zero results in the set */
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
       }
       conn.close();
 
